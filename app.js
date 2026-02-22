@@ -109,6 +109,11 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// Expose functions globally for HTML inline scripts
+window.signUpWithEmail = signUpWithEmail;
+window.signInWithEmail = signInWithEmail;
+window.logOut = logOut;
+
 // Logout button handler (if present)
 if (document.getElementById('logout-btn')) {
     document.getElementById('logout-btn').addEventListener('click', logOut);
