@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    // Helper function to get current user ID
+    function currentUserId() {
+      return request.auth.uid;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return currentUserId() == userId;
+    }
+
+    // ===== JOKES COLLECTION =====
+    // Users can create jokes
+    match /jokes/{jokeId} {
+      // Read: User can read their own jokes
+      allow read: if isAuth() && isOwner(resource.data.userId);
+      
+      // Create: Authenticated user can create new jokes
+      allow create: if isAuth() && request.data.userId == currentUserId()
+        && request.data.content is string
+        && request.data.tags is list
+        && 'createdAt' in request.resource.data
+        && 'updatedAt' in request.resource.data;
+      
+      // Update: User can update their own jokes
+      allow update: if isAuth() && isOwner(resource.data.userId)
+        && request.data.userId == resource.data.userId
+        && request.data.content is string
+        && request.data.tags is list
+        && 'updatedAt' in request.resource.data;
+      
+      // Delete: User can delete their own jokes
+      allow delete: if isAuth() && isOwner(resource.data.userId);
+    }
+
+    // ===== CONVERSATIONS COLLECTION =====
+    match /conversations/{conversationId} {
+      // Read: User can read their own conversations
+      allow read: if isAuth() && isOwner(resource.data.userId);
+      
+      // Create: Authenticated user can create new conversations
+      allow create: if isAuth() && request.data.userId == currentUserId()
+        && 'startedAt' in request.resource.data;
+      
+      // Update: Generally not needed, but allow if user owns it
+      allow update: if isAuth() && isOwner(resource.data.userId);
+      
+      // Delete: User can delete their own conversations
+      allow delete: if isAuth() && isOwner(resource.data.userId);
+
+      // ===== MESSAGES SUBCOLLECTION =====
+      match /messages/{messageId} {
+        // Read: User can read messages in their conversations
+        allow read: if isAuth() && isOwner(get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId);
+        
+        // Create: Authenticated user can add messages to their conversations
+        allow create: if isAuth() && isOwner(get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId)
+          && request.data.role in ['user', 'assistant', 'tool']
+          && request.data.content is string
+          && 'timestamp' in request.resource.data;
+        
+        // Delete: User can delete messages from their conversations (for moderation)
+        allow delete: if isAuth() && isOwner(get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId);
+      }
+    }
+
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

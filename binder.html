@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit Builder - Bitbinder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="binder-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>📚 Bitbinder</h1>
+            </div>
+            <div class="header-right">
+                <button id="back-btn" class="btn-secondary">← Back to Chat</button>
+                <button id="logout-btn" class="btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <!-- Search & Filter -->
+        <div class="binder-controls">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="Search jokes by content..."
+                    autocomplete="off"
+                >
+            </div>
+            <div class="tag-filter">
+                <div id="tag-chips" class="tag-chips"></div>
+            </div>
+        </div>
+
+        <!-- Jokes List -->
+        <main class="jokes-container">
+            <div id="jokes-list" class="jokes-list"></div>
+            <div id="empty-state" class="empty-state">
+                <p>No jokes yet. Start chatting with Bit Builder to create your first joke!</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Joke Modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <close class="modal-close">&times;</close>
+            <h2>Edit Joke</h2>
+            <form id="edit-form">
+                <textarea id="edit-content" placeholder="Joke content" required></textarea>
+                <input type="text" id="edit-tags" placeholder="Tags (comma-separated)" required>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="button" class="btn-secondary" id="modal-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Delete Joke?</h2>
+            <p>Are you sure you want to delete this joke? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="confirm-delete" class="btn-danger">Delete</button>
+                <button id="cancel-delete" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+
+    <!-- App Scripts -->
+    <script src="app.js"></script>
+    <script src="binder.js"></script>
+</body>
+</html>
