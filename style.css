@@ -165,6 +165,10 @@ body {
     margin-top: 10px;
 }
 
+.error-message:empty {
+    display: none;
+}
+
 /* ===================================
    Button Styles
    =================================== */
@@ -813,13 +817,15 @@ body {
     margin-bottom: 20px;
 }
 
-#edit-form {
+#edit-form,
+#save-joke-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
-#edit-form textarea {
+#edit-form textarea,
+#save-joke-form textarea {
     padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -833,15 +839,28 @@ body {
 }
 
 #edit-form input,
-#edit-form textarea {
+#edit-form textarea,
+#save-joke-form input,
+#save-joke-form textarea {
     transition: border-color 0.3s ease;
 }
 
 #edit-form input:focus,
-#edit-form textarea:focus {
+#edit-form textarea:focus,
+#save-joke-form input:focus,
+#save-joke-form textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+#save-joke-form input[type="text"] {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-light);
+    color: var(--text-primary);
+    font-size: 1em;
 }
 
 .modal-buttons {
