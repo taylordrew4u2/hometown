@@ -11,9 +11,15 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
-// ElevenLabs Configuration (prefer environment config, fallback to provided values)
-const ELEVENLABS_API_KEY = functions.config()?.elevenlabs?.key || 'sk_40b434d2a8deebbb7c6683dba782412a0dcc9ff571d042ca';
-const ELEVENLABS_AGENT_ID = functions.config()?.elevenlabs?.agent_id || 'agent_7401ka31ry6qftr9ab89em3339w9';
+// ElevenLabs Configuration (prefer Firebase config, then env vars, fallback to provided values)
+const ELEVENLABS_API_KEY =
+    functions.config()?.elevenlabs?.key ||
+    process.env.ELEVENLABS_API_KEY ||
+    'sk_40b434d2a8deebbb7c6683dba782412a0dcc9ff571d042ca';
+const ELEVENLABS_AGENT_ID =
+    functions.config()?.elevenlabs?.agent_id ||
+    process.env.ELEVENLABS_AGENT_ID ||
+    'agent_7401ka31ry6qftr9ab89em3339w9';
 const ELEVENLABS_API_URL = 'https://api.elevenlabs.io/v1/convai/chat';
 
 // ===================================
@@ -404,10 +410,13 @@ exports.getSignedUrl = functions.https.onCall(async (data, context) => {
 
         return { signedUrl: response.data.signed_url };
     } catch (error) {
-        console.error('Error getting signed URL:', error.response?.data || error.message);
+        const status = error.response?.status;
+        const detail = error.response?.data?.detail ?? error.response?.data ?? error.message;
+        console.error('Error getting signed URL:', { status, detail });
         throw new functions.https.HttpsError(
             'internal',
-            'Failed to get signed URL: ' + (error.response?.data?.detail || error.message)
+            'Failed to get signed URL',
+            { status, detail }
         );
     }
 });

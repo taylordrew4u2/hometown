@@ -124,7 +124,8 @@ async function fetchAndApplySignedUrl() {
         clearInterval(signedUrlRefreshTimer);
         signedUrlRefreshTimer = setInterval(fetchAndApplySignedUrl, SIGNED_URL_REFRESH_MS);
     } catch (err) {
-        console.error('[bridge] Failed to fetch signed URL:', err);
+        const details = err?.details ? JSON.stringify(err.details) : '';
+        console.error('[bridge] Failed to fetch signed URL:', err, details);
         appendMessage('system', '<i class="fas fa-triangle-exclamation"></i> Could not authenticate voice agent — check your connection and reload.');
     }
 }
