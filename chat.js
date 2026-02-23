@@ -2,35 +2,40 @@
 // Bit Builder - Dashboard Chat Logic
 // ===================================
 
-import { 
-    collection, 
-    addDoc, 
-    query, 
-    where, 
-    orderBy, 
-    onSnapshot,
-    serverTimestamp,
-    doc,
-    getDoc
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-functions.js';
-
-const { auth, db, functions } = window.firebaseApp;
-
+// Firebase references (will be available from app.js)
+let auth, db, functions;
 let currentConversationId = null;
 let messagesUnsubscribe = null;
 let speechRecognition = null;
 let isListening = false;
 
 // Elements
-const messagesArea = document.getElementById('messages-area');
-const messageInput = document.getElementById('message-input');
-const sendBtn = document.getElementById('send-btn');
-const voiceBtn = document.getElementById('voice-btn');
-const loadingIndicator = document.getElementById('loading-indicator');
-const voiceStatus = document.getElementById('voice-status');
-const bitbinderBtn = document.getElementById('bitbinder-btn');
-const backBtn = document.getElementById('back-btn');
+let messagesArea, messageInput, sendBtn, voiceBtn, loadingIndicator, voiceStatus, bitbinderBtn;
+
+// ===================================
+// Wait for Firebase to be ready
+// ===================================
+
+const initChatApp = () => {
+    // Get Firebase references
+    if (!window.firebaseApp) {
+        console.error('Firebase not initialized yet');
+        setTimeout(initChatApp, 100);
+        return;
+    }
+
+    auth = window.firebaseApp.auth;
+    db = window.firebaseApp.db;
+    functions = window.firebaseApp.functions;
+
+    // Get DOM elements
+    messagesArea = document.getElementById('messages-area');
+    messageInput = document.getElementById('message-input');
+    sendBtn = document.getElementById('send-btn');
+    voiceBtn = document.getElementById('voice-btn');
+    loadingIndicator = document.getElementById('loading-indicator');
+    voiceStatus = document.getElementById('voice-status');
+    bitbinderBtn = document.getElementById('bitbinder-btn');
 
 // ===================================
 // Initialize
