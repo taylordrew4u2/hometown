@@ -199,13 +199,13 @@ function setupIframeBridge() {
             case 'ws-open':
                 voiceActive = true;
                 updateVoiceStatus('connected');
-                appendMessage('system', '🎤 Voice connected — start talking!');
+                appendMessage('system', '<i class="fas fa-microphone"></i> Voice connected — start talking!');
                 break;
 
             case 'ws-close':
                 voiceActive = false;
                 updateVoiceStatus('idle');
-                appendMessage('system', '🔇 Voice ended');
+                appendMessage('system', '<i class="fas fa-microphone-slash"></i> Voice ended');
                 currentAgentBubble = null;
                 currentAgentText = '';
                 currentUserBubble = null;

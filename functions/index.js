@@ -274,7 +274,7 @@ You have the ability to save jokes to the user's Bitbinder by calling the \`save
 
 Always ask the user for tag suggestions if they haven't provided them.
 
-Keep your responses concise, friendly, and focused on comedy writing. Use emojis occasionally to add personality (e.g., 😂, 🎭, 💡).`;
+Keep your responses concise, friendly, and focused on comedy writing.`;
 }
 
 /**

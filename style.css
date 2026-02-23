@@ -354,6 +354,14 @@ img {
     background-clip: text;
 }
 
+.header-left h1 i {
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-drawer-header h2 i {
+    color: var(--accent);
+}
+
 .header-right {
     display: flex;
     gap: 8px;
@@ -1105,6 +1113,7 @@ img {
     font-size: 4em;
     margin-bottom: 16px;
     opacity: 0.6;
+    color: var(--accent);
 }
 
 .empty-state h3 {
