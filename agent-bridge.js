@@ -1,9 +1,10 @@
 // ===================================
-// Agent Bridge — Unified voice + text + save
+// Agent Bridge — Voice transcript + notes + save
 //
 // 1. Wires up the ElevenLabs voice widget (tool calls + transcript)
-// 2. Provides text-chat via its own WebSocket to the same agent
-// 3. Manual "Save to Bitbinder" on any message
+// 2. Shows both user & agent transcriptions in real time
+// 3. Notes panel for jotting ideas during conversation
+// 4. Manual "Save to Bitbinder" on any message
 // ===================================
 
 import {
@@ -17,16 +18,8 @@ import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.8.0/firebas
 let auth, db, functions;
 let currentUser = null;
 
-// DOM
-let messagesArea, messageInput, sendBtn, chatForm;
-
-// Text-chat WebSocket state
-let ws = null;
-let wsConnected = false;
-let waitingForAgent = false;
-let currentResponseEl = null;
-let currentResponseText = '';
-let finalizeTimer = null;
+// DOM refs
+let messagesArea;
 
 // Voice transcript state
 let currentAgentBubble = null;
@@ -35,6 +28,7 @@ let currentUserBubble = null;
 let voiceActive = false;
 
 const AGENT_ID = 'agent_7401ka31ry6qftr9ab89em3339w9';
+const NOTES_STORAGE_KEY = 'bitbuilder_notes';
 
 // ===================================
 // Init — wait for Firebase
@@ -51,49 +45,24 @@ function init() {
     functions = window.firebaseApp.functions;
 
     messagesArea = document.getElementById('messages-area');
-    messageInput = document.getElementById('message-input');
-    sendBtn = document.getElementById('send-btn');
-    chatForm = document.getElementById('text-chat-form');
 
-    if (!chatForm || !messagesArea) {
+    if (!messagesArea) {
         setTimeout(init, 100);
         return;
     }
 
-    // Text input handlers
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        sendTextMessage();
-    });
-    messageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendTextMessage();
-        }
-    });
-    messageInput.addEventListener('input', () => {
-        messageInput.style.height = 'auto';
-        messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
-    });
+    // Workspace tab switching
+    initWorkspaceTabs();
 
-    // Tap / focus on input area should always re‑enable typing
-    const inputArea = document.querySelector('.input-area');
-    if (inputArea) {
-        inputArea.addEventListener('click', () => {
-            if (!waitingForAgent) setInputEnabled(true);
-            messageInput.focus();
-        });
-        inputArea.addEventListener('touchstart', () => {
-            if (!waitingForAgent) setInputEnabled(true);
-            messageInput.focus();
-        }, { passive: true });
-    }
+    // Notes panel
+    initNotes();
 
-    // Clear button
+    // Clear transcript button
     const clearBtn = document.getElementById('clear-btn');
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             messagesArea.innerHTML = '';
+            appendMessage('assistant', 'Transcript cleared. Start a new conversation with the voice widget!');
         });
     }
 
@@ -107,10 +76,87 @@ function init() {
             console.log('[bridge] User:', user.uid);
             wireVoiceWidget();
         }
-        if (ws) { ws.close(); ws = null; wsConnected = false; }
     });
 
     console.log('[bridge] Initialized');
+}
+
+// ===================================
+// Workspace Tabs (Transcript / Notes)
+// ===================================
+
+function initWorkspaceTabs() {
+    const tabs = document.querySelectorAll('.workspace-tab[data-panel]');
+    const panels = document.querySelectorAll('.workspace-panel');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetId = tab.dataset.panel;
+
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+
+            tab.classList.add('active');
+            const target = document.getElementById(targetId);
+            if (target) target.classList.add('active');
+        });
+    });
+}
+
+// ===================================
+// Notes Panel
+// ===================================
+
+function initNotes() {
+    const notesInput = document.getElementById('notes-input');
+    const charCount = document.getElementById('notes-char-count');
+    const copyBtn = document.getElementById('copy-notes-btn');
+    const clearBtn = document.getElementById('clear-notes-btn');
+
+    if (!notesInput) return;
+
+    // Restore saved notes
+    const saved = localStorage.getItem(NOTES_STORAGE_KEY);
+    if (saved) {
+        notesInput.value = saved;
+        if (charCount) charCount.textContent = saved.length;
+    }
+
+    // Auto-save on input
+    let saveTimer = null;
+    notesInput.addEventListener('input', () => {
+        if (charCount) charCount.textContent = notesInput.value.length;
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+            localStorage.setItem(NOTES_STORAGE_KEY, notesInput.value);
+        }, 500);
+    });
+
+    // Copy notes
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            if (!notesInput.value.trim()) return;
+            try {
+                await navigator.clipboard.writeText(notesInput.value);
+                copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+            } catch {
+                // Fallback
+                notesInput.select();
+                document.execCommand('copy');
+            }
+        });
+    }
+
+    // Clear notes
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (notesInput.value && !confirm('Clear all notes?')) return;
+            notesInput.value = '';
+            if (charCount) charCount.textContent = '0';
+            localStorage.removeItem(NOTES_STORAGE_KEY);
+        });
+    }
 }
 
 // ===================================
@@ -193,17 +239,17 @@ function interceptWebSocket() {
 
             sock.addEventListener('open', () => {
                 voiceActive = true;
-                appendMessage('system', '🎤 Voice connected');
+                updateVoiceStatus('connected');
+                appendMessage('system', '🎤 Voice connected — start talking!');
             });
 
             sock.addEventListener('close', () => {
                 voiceActive = false;
+                updateVoiceStatus('idle');
                 appendMessage('system', '🔇 Voice ended');
                 currentAgentBubble = null;
                 currentAgentText = '';
                 currentUserBubble = null;
-                // Re‑enable text input when voice call ends
-                if (!waitingForAgent) setInputEnabled(true);
             });
         }
 
@@ -217,7 +263,31 @@ function interceptWebSocket() {
     window.WebSocket.CLOSED = OriginalWebSocket.CLOSED;
 }
 
+function updateVoiceStatus(state) {
+    const statusEl = document.getElementById('voice-status');
+    if (!statusEl) return;
+    const dot = statusEl.querySelector('.status-dot');
+    const label = statusEl.querySelector('.status-label');
+
+    statusEl.classList.remove('connected', 'idle');
+    if (state === 'connected') {
+        statusEl.classList.add('connected');
+        if (dot) dot.style.background = 'var(--success)';
+        if (label) label.textContent = 'Listening...';
+    } else {
+        statusEl.classList.add('idle');
+        if (dot) dot.style.background = 'var(--text-tertiary)';
+        if (label) label.textContent = 'Tap widget to start';
+    }
+}
+
 function handleVoiceMessage(data) {
+    // Auto-switch to transcript panel when voice is active
+    const transcriptTab = document.querySelector('.workspace-tab[data-panel="transcript-panel"]');
+    if (transcriptTab && !transcriptTab.classList.contains('active') && voiceActive) {
+        transcriptTab.click();
+    }
+
     switch (data.type) {
         case 'user_transcript': {
             const evt = data.user_transcription_event || data;
@@ -267,7 +337,6 @@ function handleVoiceMessage(data) {
         }
 
         case 'client_tool_call': {
-            // Voice widget tool call came through WebSocket directly
             const call = data.client_tool_call || data;
             if (call.tool_name === 'save_joke') {
                 saveJokeToFirestore(call.parameters).then(result => {
@@ -289,209 +358,7 @@ function handleVoiceMessage(data) {
 }
 
 // ===================================
-// 2. TEXT CHAT — own WebSocket to ElevenLabs agent
-// ===================================
-
-async function getSignedUrl() {
-    const fn = httpsCallable(functions, 'getSignedUrl');
-    const result = await fn();
-    return result.data.signedUrl;
-}
-
-async function connectTextWS() {
-    if (ws && ws.readyState === OriginalWebSocket.OPEN) return;
-
-    let wsUrl;
-    try {
-        wsUrl = await getSignedUrl();
-        console.log('[bridge] Got signed URL for text chat');
-    } catch (err) {
-        console.warn('[bridge] Signed URL failed, using direct:', err.message);
-        wsUrl = `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${AGENT_ID}`;
-    }
-
-    return new Promise((resolve, reject) => {
-        // Use ORIGINAL WebSocket so the interceptor doesn't capture this one
-        ws = new OriginalWebSocket(wsUrl);
-
-        const timeout = setTimeout(() => {
-            if (!wsConnected) { ws.close(); reject(new Error('Connection timed out')); }
-        }, 15000);
-
-        ws.onopen = () => {
-            console.log('[bridge] Text WS open');
-            ws.send(JSON.stringify({
-                type: 'conversation_initiation_client_data',
-                conversation_config_override: {
-                    agent: {
-                        prompt: {
-                            prompt: 'You are Bit Builder, an AI comedy writing assistant. You help users create, develop, and refine comedy material. You\'re witty, supportive, and knowledgeable about comedy writing techniques. Keep responses concise and well-formatted. Use emojis occasionally.'
-                        },
-                        first_message: null,
-                        language: 'en'
-                    }
-                }
-            }));
-        };
-
-        ws.onmessage = (event) => {
-            const msgType = handleTextWSMessage(event);
-            if (!wsConnected && msgType === 'metadata') {
-                wsConnected = true;
-                clearTimeout(timeout);
-                resolve();
-            }
-        };
-
-        ws.onerror = (err) => {
-            console.error('[bridge] Text WS error:', err);
-            clearTimeout(timeout);
-            if (!wsConnected) reject(new Error('Could not connect'));
-        };
-
-        ws.onclose = () => {
-            console.log('[bridge] Text WS closed');
-            wsConnected = false;
-            ws = null;
-            if (waitingForAgent) { waitingForAgent = false; setInputEnabled(true); }
-        };
-    });
-}
-
-function handleTextWSMessage(event) {
-    let data;
-    try { data = JSON.parse(event.data); } catch { return null; }
-
-    console.log('[bridge] Text WS:', data.type);
-
-    switch (data.type) {
-        case 'conversation_initiation_metadata':
-            return 'metadata';
-
-        case 'agent_response': {
-            const text = (data.agent_response_event || data).agent_response || '';
-            if (text) {
-                if (!currentResponseEl) {
-                    currentResponseEl = appendMessage('assistant', '', true);
-                    currentResponseText = '';
-                }
-                currentResponseText = text;
-                setBubbleHTML(currentResponseEl, currentResponseText);
-                scheduleFinalize();
-            }
-            return 'agent_response';
-        }
-
-        case 'agent_response_correction': {
-            const text = (data.agent_response_correction_event || data).agent_response
-                || (data.agent_response_correction_event || data).agent_response_correction || '';
-            if (text && currentResponseEl) {
-                currentResponseText = text;
-                setBubbleHTML(currentResponseEl, currentResponseText);
-                scheduleFinalize();
-            }
-            return 'correction';
-        }
-
-        case 'audio':
-            if (currentResponseEl) scheduleFinalize();
-            return 'audio';
-
-        case 'ping': {
-            const pingEvt = data.ping_event || data;
-            if (ws && ws.readyState === OriginalWebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'pong', event_id: pingEvt.event_id }));
-            }
-            return 'ping';
-        }
-
-        case 'client_tool_call': {
-            const call = data.client_tool_call || data;
-            handleTextToolCall(call);
-            return 'tool_call';
-        }
-
-        default:
-            return data.type;
-    }
-}
-
-async function handleTextToolCall(call) {
-    const { tool_name, tool_call_id, parameters } = call;
-    let result, isError = false;
-
-    if (tool_name === 'save_joke') {
-        result = await saveJokeToFirestore(parameters);
-        if (result.error) isError = true;
-    } else {
-        result = { error: 'Unknown tool: ' + tool_name };
-        isError = true;
-    }
-
-    if (ws && ws.readyState === OriginalWebSocket.OPEN) {
-        ws.send(JSON.stringify({
-            type: 'client_tool_result',
-            tool_call_id,
-            result: JSON.stringify(result),
-            is_error: isError
-        }));
-    }
-
-    appendMessage('tool', isError
-        ? '❌ ' + (result.error || 'Tool failed')
-        : '✅ Joke saved to Bitbinder!'
-    );
-}
-
-function scheduleFinalize() {
-    clearTimeout(finalizeTimer);
-    finalizeTimer = setTimeout(() => {
-        if (currentResponseEl) {
-            currentResponseEl = null;
-            currentResponseText = '';
-            waitingForAgent = false;
-            setInputEnabled(true);
-        }
-    }, 1500);
-}
-
-async function sendTextMessage() {
-    const text = messageInput.value.trim();
-    if (!text) return;
-    if (!currentUser) { appendMessage('system', '⚠️ Please log in first.'); return; }
-
-    appendMessage('user', text);
-    messageInput.value = '';
-    messageInput.style.height = 'auto';
-    setInputEnabled(false);
-    waitingForAgent = true;
-
-    try {
-        if (!ws || ws.readyState !== OriginalWebSocket.OPEN) {
-            const msg = appendMessage('system', '🔄 Connecting...');
-            await connectTextWS();
-            msg.remove();
-        }
-        ws.send(JSON.stringify({ text }));
-        console.log('[bridge] Sent:', text);
-
-        setTimeout(() => {
-            if (waitingForAgent && !currentResponseEl) {
-                waitingForAgent = false;
-                setInputEnabled(true);
-                appendMessage('system', '⚠️ No response. Try again.');
-            }
-        }, 30000);
-    } catch (err) {
-        console.error('[bridge] Send error:', err);
-        waitingForAgent = false;
-        setInputEnabled(true);
-        appendMessage('system', '❌ ' + (err.message || 'Connection failed'));
-    }
-}
-
-// ===================================
-// 3. SAVE TO BITBINDER — direct Firestore write + manual UI
+// 2. SAVE TO BITBINDER — direct Firestore write + manual UI
 // ===================================
 
 async function saveJokeToFirestore(params) {
@@ -572,19 +439,32 @@ function appendMessage(role, content, returnEl = false) {
     const wrapper = document.createElement('div');
     wrapper.className = 'message ' + role + '-message';
 
+    // Add speaker label for user/assistant
+    if (role === 'user' || role === 'assistant') {
+        const label = document.createElement('span');
+        label.className = 'message-label';
+        label.textContent = role === 'user' ? 'You' : 'Bit Builder';
+        wrapper.appendChild(label);
+    }
+
+    const body = document.createElement('div');
+    body.className = 'message-body';
+
     if (role === 'assistant') {
-        setBubbleHTML(wrapper, content);
+        setBubbleHTML(body, content);
+        wrapper.appendChild(body);
         // Add a save button to agent messages
         const saveBtn = document.createElement('button');
         saveBtn.className = 'btn-save-joke';
-        saveBtn.textContent = '💾 Save';
+        saveBtn.innerHTML = '<i class="fas fa-bookmark"></i> Save';
         saveBtn.title = 'Save to Bitbinder';
         saveBtn.addEventListener('click', () => {
-            window.openSaveModal(wrapper.textContent.replace('💾 Save', '').trim());
+            window.openSaveModal(body.textContent.trim());
         });
         wrapper.appendChild(saveBtn);
     } else {
-        wrapper.textContent = content;
+        body.textContent = content;
+        wrapper.appendChild(body);
     }
 
     messagesArea.appendChild(wrapper);
@@ -594,8 +474,7 @@ function appendMessage(role, content, returnEl = false) {
 }
 
 function setBubbleHTML(el, text) {
-    // Preserve save button if present
-    const saveBtn = el.querySelector('.btn-save-joke');
+    // Preserve save button if present (for live-updating agent bubbles)
     el.innerHTML = text
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -603,20 +482,7 @@ function setBubbleHTML(el, text) {
         .replace(/\n/g, '<br>')
         .replace(/`([^`]+)`/g, '<code>$1</code>')
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    if (saveBtn) el.appendChild(saveBtn);
     if (messagesArea) messagesArea.scrollTop = messagesArea.scrollHeight;
-}
-
-function setInputEnabled(enabled) {
-    if (messageInput) {
-        messageInput.disabled = !enabled;
-        // On mobile, removing disabled may not restore focus; nudge it
-        if (enabled) messageInput.removeAttribute('disabled');
-    }
-    if (sendBtn) {
-        sendBtn.disabled = !enabled;
-        sendBtn.textContent = enabled ? 'Send' : '...';
-    }
 }
 
 // ===================================
