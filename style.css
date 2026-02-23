@@ -412,11 +412,11 @@ img {
 */
 .widget-overlay {
     position: fixed;
-    bottom: 24px;
-    right: 20px;
-    width: 70px;
-    height: 70px;
-    z-index: 100;
+    bottom: 16px;
+    right: 12px;
+    width: 200px;
+    height: 200px;
+    z-index: 1000;
     pointer-events: none;
 }
 
@@ -1665,10 +1665,10 @@ img {
 
     /* Widget overlay */
     .widget-overlay {
-        bottom: 20px;
-        right: 16px;
-        width: 64px;
-        height: 64px;
+        bottom: 12px;
+        right: 8px;
+        width: 180px;
+        height: 180px;
     }
 
     /* Stack transcript + notes vertically */
@@ -1828,10 +1828,10 @@ img {
 
     /* Widget overlay on small phones */
     .widget-overlay {
-        bottom: 16px;
-        right: 14px;
-        width: 60px;
-        height: 60px;
+        bottom: 10px;
+        right: 6px;
+        width: 160px;
+        height: 160px;
     }
 
     .section-header {
