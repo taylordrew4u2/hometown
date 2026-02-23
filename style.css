@@ -396,19 +396,16 @@ img {
    Widget overlay — centered floating iframe for the ElevenLabs widget.
    The iframe prevents position:fixed shadow-DOM children
    from escaping to the viewport.
+   Sized large enough for the widget’s internal fixed-position call button.
 */
 .widget-overlay {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120px;
-    height: 120px;
+    bottom: 90px;
+    right: 20px;
+    width: 70px;
+    height: 70px;
     z-index: 100;
     pointer-events: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .widget-overlay #widget-frame {
@@ -418,6 +415,7 @@ img {
     background: transparent;
     display: block;
     pointer-events: auto;
+    overflow: hidden;
 }
 
 .chat-main {
@@ -1586,8 +1584,10 @@ img {
 
     /* Widget overlay */
     .widget-overlay {
-        width: 100px;
-        height: 100px;
+        bottom: 80px;
+        right: 16px;
+        width: 64px;
+        height: 64px;
     }
 
     /* Stack transcript + notes vertically */
@@ -1758,8 +1758,10 @@ img {
 
     /* Widget overlay on small phones */
     .widget-overlay {
-        width: 90px;
-        height: 90px;
+        bottom: 74px;
+        right: 14px;
+        width: 60px;
+        height: 60px;
     }
 
     .section-header {

@@ -14,7 +14,11 @@
         width: 100%;
         height: 100%;
       }
-      /* Let the widget fill the entire iframe */
+      /*
+        The ElevenLabs widget renders a position:fixed button at
+        bottom-right of its viewport.  Since the iframe IS the viewport,
+        the button lands in the bottom-right corner of this small frame.
+      */
       elevenlabs-convai {
         display: block;
         width: 100%;
