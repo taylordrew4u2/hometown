@@ -59,7 +59,7 @@ function init() {
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             messagesArea.innerHTML = '';
-            appendMessage('assistant', 'Transcript cleared. Start a new conversation with the voice widget!');
+            appendMessage('assistant', 'Transcript cleared. Press the phone icon to connect with BitBuilder!');
         });
     }
 
