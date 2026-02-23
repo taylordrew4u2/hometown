@@ -51,9 +51,6 @@ function init() {
         return;
     }
 
-    // Workspace tab switching
-    initWorkspaceTabs();
-
     // Notes panel
     initNotes();
 
@@ -79,28 +76,6 @@ function init() {
     });
 
     console.log('[bridge] Initialized');
-}
-
-// ===================================
-// Workspace Tabs (Transcript / Notes)
-// ===================================
-
-function initWorkspaceTabs() {
-    const tabs = document.querySelectorAll('.workspace-tab[data-panel]');
-    const panels = document.querySelectorAll('.workspace-panel');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const targetId = tab.dataset.panel;
-
-            tabs.forEach(t => t.classList.remove('active'));
-            panels.forEach(p => p.classList.remove('active'));
-
-            tab.classList.add('active');
-            const target = document.getElementById(targetId);
-            if (target) target.classList.add('active');
-        });
-    });
 }
 
 // ===================================
@@ -282,12 +257,6 @@ function updateVoiceStatus(state) {
 }
 
 function handleVoiceMessage(data) {
-    // Auto-switch to transcript panel when voice is active
-    const transcriptTab = document.querySelector('.workspace-tab[data-panel="transcript-panel"]');
-    if (transcriptTab && !transcriptTab.classList.contains('active') && voiceActive) {
-        transcriptTab.click();
-    }
-
     switch (data.type) {
         case 'user_transcript': {
             const evt = data.user_transcription_event || data;
