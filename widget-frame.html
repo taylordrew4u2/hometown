@@ -141,6 +141,51 @@
           });
         }
         wireWidget();
+
+        /* ---- Force the widget call button into a compact circle ---- */
+        function styleWidgetButton() {
+          var el = document.querySelector("elevenlabs-convai");
+          if (!el || !el.shadowRoot) {
+            setTimeout(styleWidgetButton, 300);
+            return;
+          }
+          var style = document.createElement("style");
+          style.textContent = `
+            /* Target the main floating call button */
+            button, [class*="btn"], [class*="button"], [role="button"] {
+              width: 56px !important;
+              height: 56px !important;
+              min-width: 56px !important;
+              max-width: 56px !important;
+              border-radius: 50% !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+            }
+            /* Hide any text labels inside the button, keep just the icon */
+            button span, button p, [class*="btn"] span, [class*="btn"] p,
+            [class*="button"] span, [class*="button"] p {
+              display: none !important;
+            }
+            button svg, button img, button i,
+            [class*="btn"] svg, [class*="btn"] img {
+              display: block !important;
+              flex-shrink: 0 !important;
+            }
+          `;
+          el.shadowRoot.appendChild(style);
+
+          /* Re-check periodically in case the shadow DOM rebuilds */
+          var observer = new MutationObserver(function () {
+            if (!el.shadowRoot.contains(style)) {
+              el.shadowRoot.appendChild(style);
+            }
+          });
+          observer.observe(el.shadowRoot, { childList: true, subtree: true });
+        }
+        styleWidgetButton();
       })();
     </script>
 
