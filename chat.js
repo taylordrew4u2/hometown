@@ -123,7 +123,7 @@ const initChatApp = () => {
     if (!hasAuthListener) {
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                initializeConversation();
+                initializeConversation(user);
                 return;
             }
 
@@ -151,29 +151,47 @@ initChatApp();
 // Initialize Conversation
 // ===================================
 
-async function initializeConversation() {
-    const user = auth.currentUser;
-    if (!user) return;
+async function initializeConversation(user) {
+    if (!user) {
+        user = auth.currentUser;
+    }
+    if (!user) {
+        console.error('No authenticated user for conversation init');
+        return;
+    }
 
     // Try to get existing conversation from sessionStorage
     currentConversationId = sessionStorage.getItem('conversationId');
 
     if (!currentConversationId) {
-        // Create a new conversation
-        try {
-            const conversationRef = await addDoc(collection(db, 'conversations'), {
-                userId: user.uid,
-                startedAt: serverTimestamp()
-            });
-            currentConversationId = conversationRef.id;
-            sessionStorage.setItem('conversationId', currentConversationId);
-        } catch (error) {
-            console.error('Error creating conversation:', error);
-        }
+        await createNewConversation(user);
     }
 
     // Listen to messages in real-time
-    setupMessagesListener();
+    if (currentConversationId) {
+        setupMessagesListener();
+    }
+}
+
+async function createNewConversation(user) {
+    if (!user) {
+        user = auth.currentUser;
+    }
+    if (!user) return null;
+
+    try {
+        const conversationRef = await addDoc(collection(db, 'conversations'), {
+            userId: user.uid,
+            startedAt: serverTimestamp()
+        });
+        currentConversationId = conversationRef.id;
+        sessionStorage.setItem('conversationId', currentConversationId);
+        console.log('Created conversation:', currentConversationId);
+        return currentConversationId;
+    } catch (error) {
+        console.error('Error creating conversation:', error);
+        return null;
+    }
 }
 
 // ===================================
@@ -208,8 +226,21 @@ function setupMessagesListener() {
 
 async function sendMessage() {
     const message = messageInput.value.trim();
-    
-    if (!message || !currentConversationId) return;
+    if (!message) return;
+
+    // Create conversation on-demand if it doesn't exist yet
+    if (!currentConversationId) {
+        console.log('No conversation yet, creating one before sending...');
+        await createNewConversation();
+        if (currentConversationId) {
+            setupMessagesListener();
+        }
+    }
+
+    if (!currentConversationId) {
+        showChatError('Unable to start a conversation. Please refresh and try again.');
+        return;
+    }
 
     messageInput.value = '';
     loadingIndicator.classList.remove('hidden');
@@ -217,6 +248,7 @@ async function sendMessage() {
     try {
         // Call the Cloud Function
         const chatWithAgent = httpsCallable(functions, 'chatWithAgent');
+        console.log('Sending message to chatWithAgent:', { message, conversationId: currentConversationId });
         const response = await chatWithAgent({
             message: message,
             conversationId: currentConversationId
@@ -226,16 +258,18 @@ async function sendMessage() {
         // Messages will be displayed via the real-time listener
     } catch (error) {
         console.error('Error calling chatWithAgent:', error);
-        
-        // Show error message in chat
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'message error-message';
-        errorDiv.textContent = 'Error: ' + (error.message || 'Failed to get response');
-        messagesArea.appendChild(errorDiv);
-        messagesArea.scrollTop = messagesArea.scrollHeight;
+        showChatError(error.message || 'Failed to get response from agent');
     } finally {
         loadingIndicator.classList.add('hidden');
     }
+}
+
+function showChatError(text) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'message error-message';
+    errorDiv.textContent = 'Error: ' + text;
+    messagesArea.appendChild(errorDiv);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
 }
 
 // ===================================
