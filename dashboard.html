@@ -21,52 +21,35 @@
         </div>
       </header>
 
-      <!-- Mode Toggle -->
-      <div class="mode-toggle">
-        <button
-          id="voice-tab"
-          class="mode-btn active"
-          onclick="switchMode('voice')"
-        >
-          🎤 Voice
-        </button>
-        <button id="text-tab" class="mode-btn" onclick="switchMode('text')">
-          💬 Text
-        </button>
-      </div>
-
-      <!-- Voice Mode - ElevenLabs widget + live transcript -->
-      <main id="voice-mode" class="chat-container voice-layout">
+      <!-- Unified: voice widget + conversation + text input -->
+      <main class="chat-main">
+        <!-- Left side: Voice widget -->
         <div class="voice-widget-area">
           <elevenlabs-convai
             agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
           ></elevenlabs-convai>
+          <p class="widget-hint">🎤 Tap the mic to speak</p>
         </div>
-        <div class="voice-transcript-area">
-          <div class="transcript-header">
-            <span>📝 Live Transcript</span>
-            <button id="clear-transcript-btn" class="btn-small btn-edit">
-              Clear
-            </button>
-          </div>
-          <div id="voice-transcript" class="messages-area"></div>
-        </div>
-      </main>
 
-      <!-- Text Mode - type to the agent -->
-      <main id="text-mode" class="chat-container" style="display: none">
-        <div class="text-chat-wrapper">
+        <!-- Right side: Transcript + text input -->
+        <div class="conversation-area">
+          <div class="transcript-header">
+            <span>💬 Conversation</span>
+            <button id="clear-btn" class="btn-small btn-edit">Clear</button>
+          </div>
+
           <div id="messages-area" class="messages-area">
             <div class="message assistant-message">
-              Hey there! 🎭 I'm Bit Builder, your comedy writing assistant. Type
-              a message to get started!
+              Hey there! 🎭 I'm Bit Builder, your comedy writing assistant.
+              Speak or type to get started!
             </div>
           </div>
+
           <div class="input-area">
             <form id="text-chat-form" class="input-controls">
               <textarea
                 id="message-input"
-                placeholder="Type your message..."
+                placeholder="Type a message..."
                 rows="1"
               ></textarea>
               <button type="submit" id="send-btn" class="btn-primary">
@@ -77,40 +60,35 @@
         </div>
       </main>
 
-      <!-- Configure the agent with system prompt and tool definitions -->
-      <script>
-        // Override config is picked up by the widget on init
-        window.__elevenlabs_convai_override = {
-          agent: {
-            prompt: {
-              prompt:
-                'You are Bit Builder, an AI comedy writing assistant. You help users create, develop, and refine comedy material. You\'re witty, supportive, and knowledgeable about comedy writing techniques.\n\nIMPORTANT: You have a tool called save_joke that saves jokes to the user\'s Bitbinder (their personal joke collection). When you and the user agree on a joke that\'s ready to save, call the save_joke tool with:\n- content: the final joke text\n- tags: an array of relevant tags (e.g. ["pun", "short"], ["observational", "relatable"])\n\nAlways offer to save good jokes. If the user asks to save a joke, use the save_joke tool immediately. Ask the user for tag suggestions if they haven\'t provided them.\n\nKeep responses concise, friendly, and focused on comedy writing. Use emojis occasionally (😂 🎭 💡).',
-            },
-          },
-          tools: {
-            save_joke: {
-              type: "client",
-              description:
-                "Save a joke to the user's Bitbinder (personal joke collection)",
-              parameters: {
-                type: "object",
-                properties: {
-                  content: {
-                    type: "string",
-                    description: "The joke text to save",
-                  },
-                  tags: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Tags for categorizing the joke",
-                  },
-                },
-                required: ["content", "tags"],
-              },
-            },
-          },
-        };
-      </script>
+      <!-- Save-to-Bitbinder modal -->
+      <div id="save-modal" class="modal hidden">
+        <div class="modal-content">
+          <button class="modal-close" id="save-modal-close">&times;</button>
+          <h2>💾 Save to Bitbinder</h2>
+          <form id="save-joke-form">
+            <textarea
+              id="save-joke-content"
+              rows="4"
+              placeholder="Joke text"
+            ></textarea>
+            <input
+              type="text"
+              id="save-joke-tags"
+              placeholder="Tags (comma-separated, e.g. pun, short)"
+            />
+            <div class="modal-buttons">
+              <button
+                type="button"
+                class="btn-secondary"
+                id="save-modal-cancel"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn-primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <!-- ElevenLabs Conversational AI Widget -->
@@ -120,36 +98,10 @@
       type="text/javascript"
     ></script>
 
-    <!-- App Scripts (Firebase SDK loaded via ES module imports in app.js) -->
+    <!-- App Scripts -->
     <script type="module" src="app.js"></script>
 
-    <!-- Firebase ↔ Agent bridge: handles tool calls from the widget -->
+    <!-- Unified: voice bridge + text chat + save -->
     <script type="module" src="agent-bridge.js"></script>
-
-    <!-- Text chat: type-to-agent functionality -->
-    <script type="module" src="text-chat.js"></script>
-
-    <!-- Mode toggle (non-module so onclick works) -->
-    <script>
-      function switchMode(mode) {
-        const voiceMode = document.getElementById("voice-mode");
-        const textMode = document.getElementById("text-mode");
-        const voiceTab = document.getElementById("voice-tab");
-        const textTab = document.getElementById("text-tab");
-
-        if (mode === "voice") {
-          voiceMode.style.display = "flex";
-          textMode.style.display = "none";
-          voiceTab.classList.add("active");
-          textTab.classList.remove("active");
-        } else {
-          voiceMode.style.display = "none";
-          textMode.style.display = "flex";
-          voiceTab.classList.remove("active");
-          textTab.classList.add("active");
-          document.getElementById("message-input")?.focus();
-        }
-      }
-    </script>
   </body>
 </html>
