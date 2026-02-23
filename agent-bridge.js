@@ -104,10 +104,20 @@ async function fetchAndApplySignedUrl() {
         }
         console.log('[bridge] Got signed URL, pushing to widget iframe');
 
-        // Tell the widget-frame to apply the signed URL
+        // Prefer setting via iframe src so it's applied before widget initialization
         const iframe = document.getElementById('widget-frame');
-        if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage({ type: 'set-signed-url', signedUrl: url }, '*');
+        if (iframe) {
+            const iframeUrl = new URL(iframe.getAttribute('src') || 'widget-frame.html', window.location.href);
+            const existing = iframeUrl.searchParams.get('signedUrl');
+            if (existing !== url) {
+                iframeUrl.searchParams.set('signedUrl', url);
+                iframe.setAttribute('src', iframeUrl.toString());
+            }
+
+            // Fallback: also message the iframe in case it is already loaded
+            if (iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'set-signed-url', signedUrl: url }, '*');
+            }
         }
 
         // Schedule refresh before expiry

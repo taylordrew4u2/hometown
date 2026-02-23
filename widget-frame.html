@@ -31,6 +31,20 @@
       agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
     ></elevenlabs-convai>
 
+    <script>
+      (function () {
+        // Allow signed URL to be passed via query string to ensure it's set before the widget boots.
+        var params = new URLSearchParams(window.location.search);
+        var signedUrl = params.get("signedUrl");
+        if (signedUrl) {
+          var el = document.querySelector("elevenlabs-convai");
+          if (el) {
+            el.setAttribute("signed-url", signedUrl);
+          }
+        }
+      })();
+    </script>
+
     <!-- Intercept WebSocket BEFORE widget script loads -->
     <script>
       (function () {
