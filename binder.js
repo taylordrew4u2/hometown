@@ -8,6 +8,7 @@ import {
     where,
     orderBy,
     onSnapshot,
+    addDoc,
     updateDoc,
     deleteDoc,
     doc,
@@ -65,6 +66,14 @@ const initBinderApp = () => {
         backBtn.addEventListener('click', () => {
             window.location.href = 'dashboard.html';
         });
+
+        // FAB — open modal in "add" mode
+        const fab = document.querySelector('.fab');
+        if (fab) {
+            fab.addEventListener('click', () => {
+                openAddModal();
+            });
+        }
     };
 
     if (document.readyState === 'loading') {
@@ -266,7 +275,16 @@ function openEditModal(joke) {
     currentEditingJokeId = joke.id;
     document.getElementById('edit-content').value = joke.content;
     document.getElementById('edit-tags').value = (joke.tags || []).join(', ');
+    editModal.querySelector('h2').textContent = 'Edit Joke';
     editModal.classList.remove('hidden');
+}
+
+function openAddModal() {
+    currentEditingJokeId = null;
+    editForm.reset();
+    editModal.querySelector('h2').textContent = 'Add Joke';
+    editModal.classList.remove('hidden');
+    document.getElementById('edit-content').focus();
 }
 
 function closeEditModal() {
@@ -282,23 +300,38 @@ async function saveJokeEdit(e) {
     const tagsInput = document.getElementById('edit-tags').value.trim();
     const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
 
-    if (!content || tags.length === 0) {
-        alert('Please fill in all fields');
+    if (!content) {
+        alert('Please enter joke content');
         return;
     }
+    if (tags.length === 0) tags.push('untagged');
 
     try {
-        const jokeRef = doc(db, 'jokes', currentEditingJokeId);
-        await updateDoc(jokeRef, {
-            content,
-            tags,
-            updatedAt: serverTimestamp()
-        });
+        if (currentEditingJokeId) {
+            // Update existing joke
+            const jokeRef = doc(db, 'jokes', currentEditingJokeId);
+            await updateDoc(jokeRef, {
+                content,
+                tags,
+                updatedAt: serverTimestamp()
+            });
+        } else {
+            // Add new joke
+            const user = auth.currentUser;
+            if (!user) { alert('Not signed in'); return; }
+            await addDoc(collection(db, 'jokes'), {
+                userId: user.uid,
+                content,
+                tags,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        }
 
         closeEditModal();
     } catch (error) {
-        console.error('Error updating joke:', error);
-        alert('Error updating joke: ' + error.message);
+        console.error('Error saving joke:', error);
+        alert('Error saving joke: ' + error.message);
     }
 }
 

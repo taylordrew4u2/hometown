@@ -69,6 +69,9 @@ function init() {
     // Listen for postMessage from the widget iframe
     setupIframeBridge();
 
+    // Warn before navigating away — transcript isn't persisted
+    setupNavGuard();
+
     // Auth listener
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
