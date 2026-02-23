@@ -66,17 +66,15 @@ function init() {
     // Save modal wiring
     initSaveModal();
 
-    // Intercept WebSocket BEFORE any widget is created
+    // Intercept WebSocket BEFORE widget boots
     interceptWebSocket();
-
-    // Call button — dynamically creates/destroys the voice widget
-    wireCallButton();
 
     // Auth listener
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
         if (user) {
             console.log('[bridge] User:', user.uid);
+            wireVoiceWidget();
         }
     });
 
@@ -137,72 +135,6 @@ function initNotes() {
             localStorage.removeItem(NOTES_STORAGE_KEY);
         });
     }
-}
-
-// ===================================
-// Call Button — click phone icon to start/stop voice
-// ===================================
-
-function wireCallButton() {
-    const callBtn = document.getElementById('call-btn');
-    if (!callBtn) return;
-
-    callBtn.addEventListener('click', () => {
-        if (voiceActive) {
-            // ---- End the call: remove the widget entirely ----
-            destroyWidget();
-        } else {
-            // ---- Start a call: create a fresh widget ----
-            createWidget();
-        }
-    });
-}
-
-function createWidget() {
-    // Guard: don't create duplicates
-    if (document.querySelector('elevenlabs-convai')) return;
-
-    const widget = document.createElement('elevenlabs-convai');
-    widget.setAttribute('agent-id', AGENT_ID);
-    document.body.appendChild(widget);
-
-    // Poll for the shadow-DOM button, then auto-click it.
-    // The click must happen within ~5 s of the user gesture so the
-    // browser grants microphone permission.
-    let attempts = 0;
-    const poll = setInterval(() => {
-        const root = widget.shadowRoot;
-        if (root) {
-            const btn = root.querySelector('button')
-                     || root.querySelector('[role="button"]');
-            if (btn) {
-                clearInterval(poll);
-                btn.click();   // starts session (mic + WS)
-                console.log('[bridge] Auto-clicked widget button');
-                return;
-            }
-        }
-        if (++attempts > 60) {          // 6 s timeout
-            clearInterval(poll);
-            console.warn('[bridge] Widget button not found — removing widget');
-            destroyWidget();
-        }
-    }, 100);
-
-    // Register our save_joke tool on the new widget instance
-    wireVoiceWidget();
-    console.log('[bridge] Widget created — waiting for shadow-DOM button…');
-}
-
-function destroyWidget() {
-    const widget = document.querySelector('elevenlabs-convai');
-    if (widget) widget.remove();
-    voiceActive = false;
-    updateVoiceStatus('idle');
-    currentAgentBubble = null;
-    currentAgentText = '';
-    currentUserBubble = null;
-    console.log('[bridge] Widget destroyed');
 }
 
 // ===================================
@@ -284,16 +216,15 @@ function interceptWebSocket() {
                 voiceActive = true;
                 updateVoiceStatus('connected');
                 appendMessage('system', '🎤 Voice connected — start talking!');
-                // Now that WS is open, collapse the widget with transform
-                // so its position:fixed shadow-DOM children can’t escape.
-                const w = document.querySelector('elevenlabs-convai');
-                if (w) w.classList.add('widget-collapsed');
             });
 
             sock.addEventListener('close', () => {
+                voiceActive = false;
+                updateVoiceStatus('idle');
                 appendMessage('system', '🔇 Voice ended');
-                // Tear down the widget element so nothing lingers on screen
-                destroyWidget();
+                currentAgentBubble = null;
+                currentAgentText = '';
+                currentUserBubble = null;
             });
         }
 
@@ -309,20 +240,6 @@ function interceptWebSocket() {
 
 function updateVoiceStatus(state) {
     const statusEl = document.getElementById('voice-status');
-    const callBtn = document.getElementById('call-btn');
-
-    // Toggle call button active state (red phone-slash when connected)
-    if (callBtn) {
-        const icon = callBtn.querySelector('i');
-        if (state === 'connected') {
-            callBtn.classList.add('active');
-            if (icon) icon.className = 'fas fa-phone-slash';
-        } else {
-            callBtn.classList.remove('active');
-            if (icon) icon.className = 'fas fa-phone';
-        }
-    }
-
     if (!statusEl) return;
     const dot = statusEl.querySelector('.status-dot');
     const label = statusEl.querySelector('.status-label');
@@ -335,7 +252,7 @@ function updateVoiceStatus(state) {
     } else {
         statusEl.classList.add('idle');
         if (dot) dot.style.background = 'var(--text-tertiary)';
-        if (label) label.textContent = 'Ready';
+        if (label) label.textContent = 'Tap to call';
     }
 }
 

@@ -20,15 +20,6 @@
         <div class="header-left">
           <h1>🎭 Bit Builder</h1>
         </div>
-        <div class="header-center">
-          <button id="call-btn" class="call-button" title="Start voice call">
-            <i class="fas fa-phone"></i>
-          </button>
-          <div id="voice-status" class="voice-status-pill">
-            <span class="status-dot"></span>
-            <span class="status-label">Tap to call</span>
-          </div>
-        </div>
         <div class="header-right">
           <a id="bitbinder-btn" class="btn-secondary" href="binder.html"
             ><i class="fas fa-book"></i>
@@ -40,6 +31,21 @@
           </button>
         </div>
       </header>
+
+      <!--
+        Widget dock — transform creates a new containing block so the
+        widget’s position:fixed shadow-DOM children stay inside this
+        strip instead of escaping to the viewport.
+      -->
+      <div class="widget-dock">
+        <elevenlabs-convai
+          agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
+        ></elevenlabs-convai>
+        <div id="voice-status" class="voice-status-pill">
+          <span class="status-dot"></span>
+          <span class="status-label">Tap to call</span>
+        </div>
+      </div>
 
       <!-- Main content: transcript + notes -->
       <main class="chat-main">

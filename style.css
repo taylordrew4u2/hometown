@@ -392,73 +392,25 @@ img {
     display: inline;
 }
 
-/* ---- Call button (phone icon) ---- */
-.call-button {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: none;
-    background: var(--accent-gradient);
-    color: #fff;
-    font-size: 1.3em;
-    cursor: pointer;
+/*
+   Widget dock — sits between header and main content.
+   transform: translateZ(0) creates a new containing block so the
+   widget’s position:fixed shadow-DOM children are relative to this
+   element instead of the viewport.  overflow:hidden clips them.
+*/
+.widget-dock {
+    position: relative;
+    transform: translateZ(0);
+    overflow: hidden;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 14px rgba(255, 106, 61, 0.4);
-    transition: all 0.2s ease;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-    flex-shrink: 0;
-}
-
-.call-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(255, 106, 61, 0.5);
-}
-
-.call-button:active {
-    transform: scale(0.95);
-}
-
-.call-button.active {
-    background: var(--danger);
-    box-shadow: 0 4px 14px rgba(255, 59, 48, 0.4);
-    animation: callPulse 2s ease infinite;
-}
-
-.call-button.active i::before {
-    content: "\f3dd";
-    /* fa-phone-slash */
-}
-
-@keyframes callPulse {
-
-    0%,
-    100% {
-        box-shadow: 0 4px 14px rgba(255, 59, 48, 0.4);
-    }
-
-    50% {
-        box-shadow: 0 4px 24px rgba(255, 59, 48, 0.7);
-    }
-}
-
-/*
-   Widget containment: transform creates a new containing block,
-   so position:fixed shadow-DOM children become relative to THIS
-   element instead of the viewport.  scale(0) collapses it to
-   nothing.  Applied by JS after the WebSocket connects.
-*/
-.widget-collapsed {
-    transform: scale(0) !important;
-    transform-origin: bottom right !important;
-    position: fixed !important;
-    bottom: 0 !important;
-    right: 0 !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    z-index: -1 !important;
+    gap: 12px;
+    padding: 8px 14px;
+    height: 68px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
 }
 
 .chat-main {
@@ -1626,10 +1578,10 @@ img {
     }
 
     /* Call button + status pill in header */
-    .call-button {
-        width: 46px;
-        height: 46px;
-        font-size: 1.15em;
+    .widget-dock {
+        height: 58px;
+        padding: 6px 12px;
+        gap: 10px;
     }
 
     .voice-status-pill {
@@ -1804,14 +1756,10 @@ img {
     }
 
     /* Call button smaller on tiny screens */
-    .call-button {
-        width: 42px;
-        height: 42px;
-        font-size: 1.05em;
-    }
-
-    .header-center {
-        gap: 6px;
+    .widget-dock {
+        height: 52px;
+        padding: 4px 10px;
+        gap: 8px;
     }
 
     .voice-status-pill {
