@@ -21,11 +21,49 @@
         </div>
       </header>
 
-      <!-- Agent Widget - direct communication with ElevenLabs agent -->
-      <main class="chat-container">
+      <!-- Mode Toggle -->
+      <div class="mode-toggle">
+        <button
+          id="voice-tab"
+          class="mode-btn active"
+          onclick="switchMode('voice')"
+        >
+          🎤 Voice
+        </button>
+        <button id="text-tab" class="mode-btn" onclick="switchMode('text')">
+          💬 Text
+        </button>
+      </div>
+
+      <!-- Voice Mode - ElevenLabs widget -->
+      <main id="voice-mode" class="chat-container">
         <elevenlabs-convai
           agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
         ></elevenlabs-convai>
+      </main>
+
+      <!-- Text Mode - type to the agent -->
+      <main id="text-mode" class="chat-container" style="display: none">
+        <div class="text-chat-wrapper">
+          <div id="messages-area" class="messages-area">
+            <div class="message assistant-message">
+              Hey there! 🎭 I'm Bit Builder, your comedy writing assistant. Type
+              a message to get started!
+            </div>
+          </div>
+          <div class="input-area">
+            <form id="text-chat-form" class="input-controls">
+              <textarea
+                id="message-input"
+                placeholder="Type your message..."
+                rows="1"
+              ></textarea>
+              <button type="submit" id="send-btn" class="btn-primary">
+                Send
+              </button>
+            </form>
+          </div>
+        </div>
       </main>
 
       <!-- Configure the agent with system prompt and tool definitions -->
@@ -76,5 +114,31 @@
 
     <!-- Firebase ↔ Agent bridge: handles tool calls from the widget -->
     <script type="module" src="agent-bridge.js"></script>
+
+    <!-- Text chat: type-to-agent functionality -->
+    <script type="module" src="text-chat.js"></script>
+
+    <!-- Mode toggle (non-module so onclick works) -->
+    <script>
+      function switchMode(mode) {
+        const voiceMode = document.getElementById("voice-mode");
+        const textMode = document.getElementById("text-mode");
+        const voiceTab = document.getElementById("voice-tab");
+        const textTab = document.getElementById("text-tab");
+
+        if (mode === "voice") {
+          voiceMode.style.display = "";
+          textMode.style.display = "none";
+          voiceTab.classList.add("active");
+          textTab.classList.remove("active");
+        } else {
+          voiceMode.style.display = "none";
+          textMode.style.display = "";
+          voiceTab.classList.remove("active");
+          textTab.classList.add("active");
+          document.getElementById("message-input")?.focus();
+        }
+      }
+    </script>
   </body>
 </html>
