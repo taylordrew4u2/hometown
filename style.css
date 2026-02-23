@@ -1167,18 +1167,18 @@ img {
     gap: 4px;
     padding: 8px 0;
     color: var(--text-tertiary);
-    font-size: 0.72em;
+    font-size: 0.78em;
     font-weight: 600;
     text-decoration: none;
     transition: color 0.2s ease;
     flex: 1;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 48px;
+    min-height: 48px;
     -webkit-tap-highlight-color: transparent;
 }
 
 .tab-item i {
-    font-size: 1.6em;
+    font-size: 1.8em;
     line-height: 1;
 }
 
@@ -1565,10 +1565,10 @@ img {
     }
 
     .btn-secondary {
-        padding: 10px 12px;
-        font-size: 0.9em;
-        min-width: 44px;
-        min-height: 44px;
+        padding: 10px 14px;
+        font-size: 1em;
+        min-width: 48px;
+        min-height: 48px;
         justify-content: center;
     }
 
@@ -1577,11 +1577,16 @@ img {
         flex-direction: column;
     }
 
-    /* Call button + status pill in header */
+    /* Widget dock */
     .widget-dock {
-        height: 58px;
+        height: 64px;
         padding: 6px 12px;
         gap: 10px;
+    }
+
+    .widget-dock elevenlabs-convai {
+        max-width: 50px;
+        max-height: 50px;
     }
 
     .voice-status-pill {
@@ -1622,16 +1627,16 @@ img {
     }
 
     .section-title i {
-        font-size: 1em;
+        font-size: 1.15em;
     }
 
-    /* Keep buttons at 44px on mobile — Apple HIG */
+    /* Keep buttons at 48px on mobile — above Apple HIG 44px */
     .btn-icon-small {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
-        font-size: 1em;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 1.15em;
     }
 
     .section-actions {
@@ -1679,13 +1684,13 @@ img {
 
     /* Tab bar: bigger icons on mobile */
     .tab-item {
-        font-size: 0.72em;
+        font-size: 0.78em;
         gap: 3px;
-        min-height: 48px;
+        min-height: 52px;
     }
 
     .tab-item i {
-        font-size: 1.7em;
+        font-size: 2em;
     }
 
     .binder-controls {
@@ -1749,17 +1754,22 @@ img {
     }
 
     .header-right .btn-secondary {
-        padding: 8px 10px;
-        font-size: 0.85em;
-        min-width: 44px;
-        min-height: 40px;
+        padding: 10px 12px;
+        font-size: 0.95em;
+        min-width: 48px;
+        min-height: 44px;
     }
 
-    /* Call button smaller on tiny screens */
+    /* Widget dock on small phones */
     .widget-dock {
-        height: 52px;
+        height: 58px;
         padding: 4px 10px;
         gap: 8px;
+    }
+
+    .widget-dock elevenlabs-convai {
+        max-width: 46px;
+        max-height: 46px;
     }
 
     .voice-status-pill {
@@ -1776,13 +1786,13 @@ img {
         font-size: 0.8em;
     }
 
-    /* Keep 44px touch targets on small phones too */
+    /* Keep 48px touch targets on small phones too */
     .btn-icon-small {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
-        font-size: 1em;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 1.1em;
     }
 
     .notes-count {
@@ -1823,12 +1833,12 @@ img {
 
     /* Tab bar stays chunky and tappable */
     .tab-item {
-        font-size: 0.68em;
-        min-height: 48px;
+        font-size: 0.75em;
+        min-height: 52px;
     }
 
     .tab-item i {
-        font-size: 1.6em;
+        font-size: 1.9em;
     }
 
     /* Help page small-screen tweaks */
