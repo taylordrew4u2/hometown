@@ -16,36 +16,40 @@
   <body>
     <div class="dashboard-container">
       <!-- Header -->
-      <header class="header">
+      <header class="header header-compact">
         <div class="header-left">
           <h1>🎭 Bit Builder</h1>
         </div>
         <div class="header-right">
           <a id="bitbinder-btn" class="btn-secondary" href="binder.html"
-            ><i class="fas fa-book"></i> Bitbinder</a
+            ><i class="fas fa-book"></i>
+            <span class="hide-mobile">Bitbinder</span></a
           >
           <button id="logout-btn" class="btn-secondary">
-            <i class="fas fa-right-from-bracket"></i> Logout
+            <i class="fas fa-right-from-bracket"></i>
+            <span class="hide-mobile">Logout</span>
           </button>
         </div>
       </header>
 
       <!-- Main content: widget + transcript + notes -->
       <main class="chat-main">
-        <!-- Voice widget strip -->
+        <!-- Voice widget — contained with transform trick -->
         <div class="voice-widget-area">
-          <elevenlabs-convai
-            agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
-          ></elevenlabs-convai>
+          <div class="widget-cage">
+            <elevenlabs-convai
+              agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
+            ></elevenlabs-convai>
+          </div>
           <div id="voice-status" class="voice-status-pill">
             <span class="status-dot"></span>
             <span class="status-label">Tap to start</span>
           </div>
         </div>
 
-        <!-- Transcript + Notes split -->
+        <!-- Transcript + Notes -->
         <div class="workspace-area">
-          <!-- Transcript section -->
+          <!-- Transcript section (takes more space) -->
           <div class="workspace-section transcript-section">
             <div class="section-header">
               <span class="section-title"
@@ -67,7 +71,7 @@
             </div>
           </div>
 
-          <!-- Notes section -->
+          <!-- Notes section (compact) -->
           <div class="workspace-section notes-section">
             <div class="section-header">
               <span class="section-title"
@@ -96,7 +100,7 @@
             <textarea
               id="notes-input"
               class="notes-textarea"
-              placeholder="Jot down ideas, bits, or observations while you talk..."
+              placeholder="Jot down ideas, bits, or observations..."
             ></textarea>
           </div>
         </div>
