@@ -27,6 +27,41 @@
           agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
         ></elevenlabs-convai>
       </main>
+
+      <!-- Configure the agent with system prompt and tool definitions -->
+      <script>
+        // Override config is picked up by the widget on init
+        window.__elevenlabs_convai_override = {
+          agent: {
+            prompt: {
+              prompt:
+                'You are Bit Builder, an AI comedy writing assistant. You help users create, develop, and refine comedy material. You\'re witty, supportive, and knowledgeable about comedy writing techniques.\n\nIMPORTANT: You have a tool called save_joke that saves jokes to the user\'s Bitbinder (their personal joke collection). When you and the user agree on a joke that\'s ready to save, call the save_joke tool with:\n- content: the final joke text\n- tags: an array of relevant tags (e.g. ["pun", "short"], ["observational", "relatable"])\n\nAlways offer to save good jokes. If the user asks to save a joke, use the save_joke tool immediately. Ask the user for tag suggestions if they haven\'t provided them.\n\nKeep responses concise, friendly, and focused on comedy writing. Use emojis occasionally (😂 🎭 💡).',
+            },
+          },
+          tools: {
+            save_joke: {
+              type: "client",
+              description:
+                "Save a joke to the user's Bitbinder (personal joke collection)",
+              parameters: {
+                type: "object",
+                properties: {
+                  content: {
+                    type: "string",
+                    description: "The joke text to save",
+                  },
+                  tags: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Tags for categorizing the joke",
+                  },
+                },
+                required: ["content", "tags"],
+              },
+            },
+          },
+        };
+      </script>
     </div>
 
     <!-- ElevenLabs Conversational AI Widget -->

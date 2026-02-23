@@ -49,12 +49,40 @@ function wireWidget() {
         return;
     }
 
-    // Listen for client-tool-call events dispatched by the widget.
-    // ElevenLabs Convai widget fires "elevenlabs-convai:call"
-    // with detail { tool_name, parameters, callback }.
+    // Register the save_joke tool so the agent can call it
+    function registerTools() {
+        if (typeof widget.registerClientTool === 'function') {
+            widget.registerClientTool('save_joke', async (params) => {
+                console.log('[agent-bridge] save_joke called:', params);
+                return await handleToolCall('save_joke', params);
+            });
+            console.log('[agent-bridge] Registered save_joke client tool');
+            return true;
+        }
+        return false;
+    }
+
+    // Try immediately
+    if (!registerTools()) {
+        // Widget not ready yet — listen for ready event and also poll
+        widget.addEventListener('elevenlabs-convai:ready', () => {
+            registerTools();
+        });
+
+        // Fallback poll in case the event doesn't fire
+        let attempts = 0;
+        const pollRegister = setInterval(() => {
+            attempts++;
+            if (registerTools() || attempts > 50) {
+                clearInterval(pollRegister);
+            }
+        }, 300);
+    }
+
+    // Also listen for generic tool-call events as a catch-all
     widget.addEventListener('elevenlabs-convai:call', async (e) => {
         const { tool_name, parameters, callback } = e.detail || {};
-        console.log('[agent-bridge] Tool call received:', tool_name, parameters);
+        console.log('[agent-bridge] Tool call event:', tool_name, parameters);
 
         try {
             const result = await handleToolCall(tool_name, parameters);
@@ -69,27 +97,7 @@ function wireWidget() {
         }
     });
 
-    // Also register via the widget's JS API if available
-    if (typeof widget.registerClientTool === 'function') {
-        widget.registerClientTool('save_joke', async (params) => {
-            console.log('[agent-bridge] save_joke called via registerClientTool:', params);
-            return await handleToolCall('save_joke', params);
-        });
-        console.log('[agent-bridge] Registered save_joke client tool on widget');
-    } else {
-        // Widget API may not be ready yet — retry after it loads
-        widget.addEventListener('elevenlabs-convai:ready', () => {
-            if (typeof widget.registerClientTool === 'function') {
-                widget.registerClientTool('save_joke', async (params) => {
-                    console.log('[agent-bridge] save_joke called via registerClientTool:', params);
-                    return await handleToolCall('save_joke', params);
-                });
-                console.log('[agent-bridge] Registered save_joke client tool on widget (after ready)');
-            }
-        });
-    }
-
-    console.log('[agent-bridge] Widget wired up');
+    console.log('[agent-bridge] Widget wired up, waiting for tool registration...');
 }
 
 // ===================================
