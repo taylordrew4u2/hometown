@@ -412,10 +412,10 @@ img {
 */
 .widget-overlay {
     position: fixed;
-    bottom: 16px;
-    right: 12px;
-    width: 200px;
-    height: 200px;
+    bottom: 20px;
+    right: 20px;
+    width: 72px;
+    height: 72px;
     z-index: 1000;
     pointer-events: none;
 }
@@ -428,6 +428,7 @@ img {
     display: block;
     pointer-events: auto;
     overflow: hidden;
+    border-radius: 50%;
 }
 
 .chat-main {
@@ -1665,10 +1666,10 @@ img {
 
     /* Widget overlay */
     .widget-overlay {
-        bottom: 12px;
-        right: 8px;
-        width: 180px;
-        height: 180px;
+        bottom: 16px;
+        right: 16px;
+        width: 68px;
+        height: 68px;
     }
 
     /* Stack transcript + notes vertically */
@@ -1828,10 +1829,10 @@ img {
 
     /* Widget overlay on small phones */
     .widget-overlay {
-        bottom: 10px;
-        right: 6px;
-        width: 160px;
-        height: 160px;
+        bottom: 14px;
+        right: 14px;
+        width: 64px;
+        height: 64px;
     }
 
     .section-header {

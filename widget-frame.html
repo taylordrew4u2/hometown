@@ -142,7 +142,7 @@
         }
         wireWidget();
 
-        /* ---- Force the widget call button into a compact circle ---- */
+        /* ---- Force the widget into a compact circle ---- */
         function styleWidgetButton() {
           var el = document.querySelector("elevenlabs-convai");
           if (!el || !el.shadowRoot) {
@@ -151,33 +151,56 @@
           }
           var style = document.createElement("style");
           style.textContent = `
-            /* Target the main floating call button */
-            button, [class*="btn"], [class*="button"], [role="button"] {
-              width: 56px !important;
-              height: 56px !important;
-              min-width: 56px !important;
-              max-width: 56px !important;
+            /* Collapse entire widget to a small circle in bottom-right */
+            :host {
+              width: 64px !important;
+              height: 64px !important;
+              display: block !important;
+              position: fixed !important;
+              bottom: 0 !important;
+              right: 0 !important;
+            }
+            /* The top-level wrapper div */
+            div {
+              position: relative !important;
+            }
+            /* Hide the expanded card, powered-by text, and all text labels */
+            p, span, h1, h2, h3, h4, h5, h6, a,
+            [class*="powered"], [class*="Powered"],
+            [class*="text"], [class*="label"], [class*="title"],
+            [class*="header"], [class*="card"], [class*="Card"] {
+              display: none !important;
+            }
+            /* But keep SVGs and images visible */
+            svg, img, canvas {
+              display: block !important;
+            }
+            /* Make any button a circle */
+            button {
+              width: 60px !important;
+              height: 60px !important;
+              min-width: 60px !important;
+              max-width: 60px !important;
+              min-height: 60px !important;
+              max-height: 60px !important;
               border-radius: 50% !important;
               padding: 0 !important;
               overflow: hidden !important;
               display: flex !important;
               align-items: center !important;
               justify-content: center !important;
+              position: fixed !important;
+              bottom: 2px !important;
+              right: 2px !important;
             }
-            /* Hide any text labels inside the button, keep just the icon */
-            button span, button p, [class*="btn"] span, [class*="btn"] p,
-            [class*="button"] span, [class*="button"] p {
-              display: none !important;
-            }
-            button svg, button img, button i,
-            [class*="btn"] svg, [class*="btn"] img {
+            /* Keep button children (icons, svgs) visible */
+            button svg, button img, button canvas, button div {
               display: block !important;
-              flex-shrink: 0 !important;
             }
           `;
           el.shadowRoot.appendChild(style);
 
-          /* Re-check periodically in case the shadow DOM rebuilds */
+          /* Re-inject if shadow DOM rebuilds */
           var observer = new MutationObserver(function () {
             if (!el.shadowRoot.contains(style)) {
               el.shadowRoot.appendChild(style);
