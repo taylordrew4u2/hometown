@@ -25,7 +25,7 @@ let jokesUnsubscribe = null;
 
 // Elements
 let jokesList, emptyState, searchInput, tagChips;
-let editModal, deleteModal, editForm, modalCancel, cancelDelete, confirmDelete, modalClose, backBtn;
+let editModal, deleteModal, editForm, modalCancel, cancelDelete, confirmDelete, modalClose;
 
 // ===================================
 // Wait for Firebase to be ready
@@ -53,7 +53,6 @@ const initBinderApp = () => {
     cancelDelete = document.getElementById('cancel-delete');
     confirmDelete = document.getElementById('confirm-delete');
     modalClose = document.querySelector('.modal-close');
-    backBtn = document.getElementById('back-btn');
 
     // Bind UI event listeners
     const bindUi = () => {
@@ -63,9 +62,6 @@ const initBinderApp = () => {
         modalClose.addEventListener('click', closeEditModal);
         cancelDelete.addEventListener('click', closeDeleteModal);
         confirmDelete.addEventListener('click', deleteJoke);
-        backBtn.addEventListener('click', () => {
-            window.location.href = 'dashboard.html';
-        });
 
         // FAB — open modal in "add" mode
         const fab = document.querySelector('.fab');

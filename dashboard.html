@@ -18,19 +18,51 @@
       <!-- Header -->
       <header class="header header-compact">
         <div class="header-left">
+          <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+          </button>
           <h1>🎭 Bit Builder</h1>
         </div>
         <div class="header-right">
-          <a id="bitbinder-btn" class="btn-secondary" href="binder.html"
-            ><i class="fas fa-book"></i>
-            <span class="hide-mobile">Bitbinder</span></a
-          >
-          <button id="logout-btn" class="btn-secondary">
+          <button id="logout-btn" class="btn-secondary hidden">
             <i class="fas fa-right-from-bracket"></i>
-            <span class="hide-mobile">Logout</span>
           </button>
         </div>
       </header>
+
+      <!-- Nav Menu -->
+      <div class="nav-overlay" onclick="toggleNav()"></div>
+      <nav class="nav-drawer" id="nav-drawer">
+        <div class="nav-drawer-header"><h2>🎭 Bit Builder</h2></div>
+        <div class="nav-links">
+          <a href="dashboard.html" class="nav-link active"
+            ><i class="fas fa-house"></i> Home</a
+          >
+          <a href="binder.html" class="nav-link"
+            ><i class="fas fa-book"></i> Jokes</a
+          >
+          <a href="setlists.html" class="nav-link"
+            ><i class="fas fa-list-ol"></i> Set Lists</a
+          >
+          <a href="recordings.html" class="nav-link"
+            ><i class="fas fa-microphone"></i> Recordings</a
+          >
+          <a href="help.html" class="nav-link"
+            ><i class="fas fa-circle-question"></i> Help</a
+          >
+        </div>
+        <div class="nav-drawer-footer">
+          <a
+            href="#"
+            class="nav-link nav-logout"
+            onclick="
+              logOut();
+              return false;
+            "
+            ><i class="fas fa-right-from-bracket"></i> Logout</a
+          >
+        </div>
+      </nav>
 
       <!-- Voice widget — centered floating overlay -->
       <div id="widget-overlay" class="widget-overlay">
@@ -105,25 +137,6 @@
         </div>
       </main>
 
-      <!-- Tab Bar -->
-      <nav class="tab-bar">
-        <a href="dashboard.html" class="tab-item active"
-          ><i class="fas fa-house"></i><span>Home</span></a
-        >
-        <a href="binder.html" class="tab-item"
-          ><i class="fas fa-book"></i><span>Jokes</span></a
-        >
-        <a href="setlists.html" class="tab-item"
-          ><i class="fas fa-list-ol"></i><span>Set Lists</span></a
-        >
-        <a href="recordings.html" class="tab-item"
-          ><i class="fas fa-microphone"></i><span>Recordings</span></a
-        >
-        <a href="help.html" class="tab-item"
-          ><i class="fas fa-circle-question"></i><span>Help</span></a
-        >
-      </nav>
-
       <!-- Save-to-Bitbinder modal -->
       <div id="save-modal" class="modal hidden">
         <div class="modal-content">
@@ -160,5 +173,11 @@
 
     <!-- Voice bridge + save -->
     <script type="module" src="agent-bridge.js"></script>
+    <script>
+      function toggleNav() {
+        document.querySelector(".nav-overlay").classList.toggle("open");
+        document.querySelector(".nav-drawer").classList.toggle("open");
+      }
+    </script>
   </body>
 </html>

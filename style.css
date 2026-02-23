@@ -45,7 +45,6 @@
     --radius-pill: 999px;
     --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     --font-mono: 'Courier New', Courier, monospace;
-    --tab-height: 64px;
 }
 
 html,
@@ -339,6 +338,12 @@ img {
     z-index: 100;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .header-left h1 {
     margin: 0;
     font-size: 1.5em;
@@ -362,8 +367,7 @@ img {
     height: 100vh;
     height: 100dvh;
     background: var(--surface);
-    padding-bottom: var(--tab-height);
-    padding-bottom: calc(var(--tab-height) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
     overflow: hidden;
 }
 
@@ -400,7 +404,7 @@ img {
 */
 .widget-overlay {
     position: fixed;
-    bottom: 90px;
+    bottom: 24px;
     right: 20px;
     width: 70px;
     height: 70px;
@@ -809,7 +813,7 @@ img {
     flex-direction: column;
     height: 100vh;
     background: var(--paper);
-    padding-bottom: var(--tab-height);
+    padding-bottom: 0;
 }
 
 /* Folder chip scroll */
@@ -1120,7 +1124,7 @@ img {
 
 .fab {
     position: fixed;
-    bottom: calc(var(--tab-height) + 20px);
+    bottom: 24px;
     right: 20px;
     width: 56px;
     height: 56px;
@@ -1147,56 +1151,124 @@ img {
     transform: scale(0.95);
 }
 
-/* ---------- Tab Bar ---------- */
+/* ---------- Navigation Menu ---------- */
 
-.tab-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--tab-height);
-    background: var(--card-bg);
-    border-top: 1px solid var(--border);
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.3em;
+    cursor: pointer;
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
     display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 999;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-}
-
-.tab-item {
-    display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 8px 0;
-    color: var(--text-tertiary);
-    font-size: 0.78em;
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.2s ease;
-    flex: 1;
-    min-width: 48px;
-    min-height: 48px;
     -webkit-tap-highlight-color: transparent;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
 }
 
-.tab-item i {
-    font-size: 1.8em;
-    line-height: 1;
+.hamburger-btn:hover {
+    background: var(--surface);
 }
 
-.tab-item:hover {
+.nav-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.nav-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.nav-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 80vw;
+    background: var(--card-bg);
+    z-index: 2001;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+}
+
+.nav-drawer.open {
+    transform: translateX(0);
+}
+
+.nav-drawer-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-drawer-header h2 {
+    font-size: 1.3em;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.nav-links {
+    flex: 1;
+    padding: 8px 0;
+    overflow-y: auto;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
     color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 1em;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+    border-left: 3px solid transparent;
 }
 
-.tab-item.active {
-    color: var(--margin-red);
+.nav-link:hover {
+    background: var(--surface);
+    color: var(--text-primary);
 }
 
-.tab-item.active i {
+.nav-link.active {
     color: var(--margin-red);
+    background: rgba(6, 182, 212, 0.08);
+    border-left-color: var(--margin-red);
+    font-weight: 600;
+}
+
+.nav-link i {
+    font-size: 1.2em;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-drawer-footer {
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+}
+
+.nav-link.nav-logout {
+    color: var(--text-tertiary);
+}
+
+.nav-link.nav-logout:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
 }
 
 /* ---------- Notepad ---------- */
@@ -1417,7 +1489,7 @@ img {
     flex-direction: column;
     height: 100vh;
     background: var(--paper);
-    padding-bottom: var(--tab-height);
+    padding-bottom: 0;
 }
 
 .page-content {
@@ -1584,7 +1656,7 @@ img {
 
     /* Widget overlay */
     .widget-overlay {
-        bottom: 80px;
+        bottom: 20px;
         right: 16px;
         width: 64px;
         height: 64px;
@@ -1678,17 +1750,6 @@ img {
             var(--paper);
     }
 
-    /* Tab bar: bigger icons on mobile */
-    .tab-item {
-        font-size: 0.78em;
-        gap: 3px;
-        min-height: 52px;
-    }
-
-    .tab-item i {
-        font-size: 2em;
-    }
-
     .binder-controls {
         padding: 12px 16px;
     }
@@ -1758,7 +1819,7 @@ img {
 
     /* Widget overlay on small phones */
     .widget-overlay {
-        bottom: 74px;
+        bottom: 16px;
         right: 14px;
         width: 60px;
         height: 60px;
@@ -1816,16 +1877,6 @@ img {
                 var(--ruled) 23px,
                 var(--ruled) 24px),
             var(--paper);
-    }
-
-    /* Tab bar stays chunky and tappable */
-    .tab-item {
-        font-size: 0.75em;
-        min-height: 52px;
-    }
-
-    .tab-item i {
-        font-size: 1.9em;
     }
 
     /* Help page small-screen tweaks */

@@ -14,12 +14,46 @@
     <div class="page-container">
       <header class="header">
         <div class="header-left">
+          <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+          </button>
           <h1>🗂️ Auto-Organize</h1>
         </div>
-        <div class="header-right">
-          <a href="binder.html" class="btn-secondary">← Back</a>
-        </div>
       </header>
+
+      <!-- Nav Menu -->
+      <div class="nav-overlay" onclick="toggleNav()"></div>
+      <nav class="nav-drawer" id="nav-drawer">
+        <div class="nav-drawer-header"><h2>🎭 Bit Builder</h2></div>
+        <div class="nav-links">
+          <a href="dashboard.html" class="nav-link"
+            ><i class="fas fa-house"></i> Home</a
+          >
+          <a href="binder.html" class="nav-link"
+            ><i class="fas fa-book"></i> Jokes</a
+          >
+          <a href="setlists.html" class="nav-link"
+            ><i class="fas fa-list-ol"></i> Set Lists</a
+          >
+          <a href="recordings.html" class="nav-link"
+            ><i class="fas fa-microphone"></i> Recordings</a
+          >
+          <a href="help.html" class="nav-link"
+            ><i class="fas fa-circle-question"></i> Help</a
+          >
+        </div>
+        <div class="nav-drawer-footer">
+          <a
+            href="#"
+            class="nav-link nav-logout"
+            onclick="
+              logOut();
+              return false;
+            "
+            ><i class="fas fa-right-from-bracket"></i> Logout</a
+          >
+        </div>
+      </nav>
 
       <main class="coming-soon">
         <div class="coming-soon-icon">
@@ -31,24 +65,13 @@
           soon!
         </p>
       </main>
-
-      <nav class="tab-bar">
-        <a href="dashboard.html" class="tab-item"
-          ><i class="fas fa-house"></i><span>Home</span></a
-        >
-        <a href="binder.html" class="tab-item"
-          ><i class="fas fa-book"></i><span>Jokes</span></a
-        >
-        <a href="setlists.html" class="tab-item"
-          ><i class="fas fa-list-ol"></i><span>Set Lists</span></a
-        >
-        <a href="recordings.html" class="tab-item"
-          ><i class="fas fa-microphone"></i><span>Recordings</span></a
-        >
-        <a href="help.html" class="tab-item"
-          ><i class="fas fa-circle-question"></i><span>Help</span></a
-        >
-      </nav>
     </div>
+    <script type="module" src="app.js"></script>
+    <script>
+      function toggleNav() {
+        document.querySelector(".nav-overlay").classList.toggle("open");
+        document.querySelector(".nav-drawer").classList.toggle("open");
+      }
+    </script>
   </body>
 </html>
