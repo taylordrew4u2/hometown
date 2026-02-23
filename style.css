@@ -400,13 +400,14 @@ img {
     border-right: 1px solid var(--border);
     background: var(--card-bg);
     overflow: hidden;
+    clip-path: inset(0 0 0 0);
 }
 
 /*
-   Widget cage — the key to containment.
-   `transform` creates a new containing block so that even
-   position:fixed elements inside the widget can't escape.
-   `contain: strict` further isolates layout/paint.
+   Widget cage uses clip-path: inset(0) which is the ONLY
+   CSS technique that clips position:fixed Shadow DOM children.
+   overflow:hidden doesn't work, contain:strict doesn't pierce
+   shadow DOM, but clip-path does.
 */
 .widget-cage {
     position: relative;
@@ -414,13 +415,13 @@ img {
     max-width: 200px;
     max-height: 200px;
     overflow: hidden;
-    transform: translateZ(0);
-    contain: strict;
+    clip-path: inset(0 0 0 0);
     border-radius: var(--radius-md);
     aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--surface);
 }
 
 .widget-cage elevenlabs-convai {
@@ -429,24 +430,6 @@ img {
     height: 100%;
     position: relative;
     z-index: 1;
-}
-
-/* Nuke any internal fixed/absolute breakouts */
-.widget-cage elevenlabs-convai *,
-.widget-cage elevenlabs-convai::part(widget) {
-    position: relative !important;
-    z-index: 1 !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-}
-
-.widget-cage iframe {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-    position: relative !important;
-    border: none;
 }
 
 /* Voice status pill */
@@ -544,10 +527,10 @@ img {
     font-weight: 600;
 }
 
-/* Icon buttons — 44px touch target */
+/* Icon buttons — Apple HIG minimum 44px touch targets */
 .btn-icon {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-sm);
     border: none;
     background: var(--surface);
@@ -556,7 +539,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8em;
+    font-size: 1em;
     transition: all 0.15s ease;
     -webkit-tap-highlight-color: transparent;
 }
@@ -568,10 +551,10 @@ img {
 }
 
 .btn-icon-small {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     border-radius: var(--radius-sm);
     border: none;
     background: var(--surface);
@@ -580,7 +563,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.72em;
+    font-size: 0.9em;
     transition: all 0.15s ease;
     -webkit-tap-highlight-color: transparent;
 }
@@ -707,10 +690,10 @@ img {
 .btn-save-joke {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     margin-top: 6px;
-    padding: 3px 10px;
-    font-size: 0.7em;
+    padding: 8px 14px;
+    font-size: 0.78em;
     font-weight: 600;
     color: var(--text-secondary);
     background: var(--surface);
@@ -720,6 +703,7 @@ img {
     transition: all 0.15s ease;
     font-family: var(--font-system);
     -webkit-tap-highlight-color: transparent;
+    min-height: 36px;
 }
 
 .btn-save-joke:hover,
@@ -1191,19 +1175,21 @@ img {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    padding: 6px 0;
+    gap: 4px;
+    padding: 8px 0;
     color: var(--text-tertiary);
-    font-size: 0.68em;
+    font-size: 0.72em;
     font-weight: 600;
     text-decoration: none;
     transition: color 0.2s ease;
     flex: 1;
-    min-width: 0;
+    min-width: 44px;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .tab-item i {
-    font-size: 1.5em;
+    font-size: 1.6em;
     line-height: 1;
 }
 
@@ -1572,13 +1558,13 @@ img {
         padding: 28px 20px;
     }
 
-    /* Slim header — icon-only buttons */
+    /* Compact header — icon-only buttons */
     .header.header-compact {
         padding: 6px 12px;
     }
 
     .header.header-compact h1 {
-        font-size: 1.05em;
+        font-size: 1.1em;
     }
 
     .hide-mobile {
@@ -1586,14 +1572,14 @@ img {
     }
 
     .header-right {
-        gap: 4px;
+        gap: 6px;
     }
 
     .btn-secondary {
-        padding: 8px 10px;
-        font-size: 0.8em;
-        min-width: 40px;
-        min-height: 36px;
+        padding: 10px 12px;
+        font-size: 0.9em;
+        min-width: 44px;
+        min-height: 44px;
         justify-content: center;
     }
 
@@ -1602,26 +1588,36 @@ img {
         flex-direction: column;
     }
 
-    /* Widget: compact horizontal strip at top */
+    /*
+       Widget area: horizontal strip at top.
+       clip-path: inset(0) is the nuclear option — it clips
+       ALL descendants, even position:fixed shadow-DOM children.
+    */
     .voice-widget-area {
         flex-direction: row;
         border-right: none;
         border-bottom: 1px solid var(--border);
-        padding: 8px 12px;
-        gap: 10px;
+        padding: 10px 16px;
+        gap: 12px;
         touch-action: manipulation;
+        clip-path: inset(0 0 0 0);
     }
 
     .widget-cage {
-        max-width: 80px;
-        max-height: 80px;
-        border-radius: var(--radius-sm);
+        max-width: 72px;
+        max-height: 72px;
+        border-radius: var(--radius-md);
         flex-shrink: 0;
     }
 
     .voice-status-pill {
-        font-size: 0.72em;
-        padding: 3px 10px;
+        font-size: 0.82em;
+        padding: 6px 14px;
+    }
+
+    .voice-status-pill .status-dot {
+        width: 9px;
+        height: 9px;
     }
 
     /* Stack transcript + notes vertically */
@@ -1648,41 +1644,79 @@ img {
     }
 
     .section-header {
-        padding: 5px 10px;
-        min-height: 32px;
+        padding: 6px 12px;
+        min-height: 40px;
     }
 
     .section-title {
-        font-size: 0.72em;
+        font-size: 0.85em;
+    }
+
+    .section-title i {
+        font-size: 1em;
+    }
+
+    /* Keep buttons at 44px on mobile — Apple HIG */
+    .btn-icon-small {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 1em;
+    }
+
+    .section-actions {
+        gap: 8px;
+    }
+
+    .notes-count {
+        font-size: 0.78em;
     }
 
     .messages-area {
-        padding: 8px;
-        gap: 4px;
+        padding: 10px;
+        gap: 6px;
     }
 
     .message {
         max-width: 98%;
-        font-size: 0.84em;
-        padding: 8px 10px;
-        border-radius: var(--radius-sm);
+        font-size: 0.9em;
+        padding: 10px 12px;
+        border-radius: var(--radius-md);
     }
 
     .message-label {
-        font-size: 0.64em;
+        font-size: 0.7em;
         margin-bottom: 2px;
     }
 
+    .btn-save-joke {
+        padding: 8px 14px;
+        font-size: 0.78em;
+        min-height: 36px;
+    }
+
     .notes-textarea {
-        padding: 8px;
-        font-size: 0.84em;
-        line-height: 1.5;
+        padding: 10px 12px;
+        font-size: 0.92em;
+        line-height: 1.55;
         background:
             repeating-linear-gradient(transparent,
-                transparent 23px,
-                var(--ruled) 23px,
-                var(--ruled) 24px),
+                transparent 25px,
+                var(--ruled) 25px,
+                var(--ruled) 26px),
             var(--paper);
+    }
+
+    /* Tab bar: bigger icons on mobile */
+    .tab-item {
+        font-size: 0.72em;
+        gap: 3px;
+        min-height: 48px;
+    }
+
+    .tab-item i {
+        font-size: 1.7em;
     }
 
     .binder-controls {
@@ -1736,92 +1770,100 @@ img {
 
 @media (max-width: 480px) {
 
-    /* Even slimmer header */
+    /* Tighter header on small phones */
     .header.header-compact {
-        padding: 4px 8px;
+        padding: 4px 10px;
     }
 
     .header.header-compact h1 {
-        font-size: 0.95em;
+        font-size: 1em;
     }
 
     .header-right .btn-secondary {
-        padding: 6px 8px;
-        font-size: 0.75em;
-        min-width: 36px;
-        min-height: 32px;
+        padding: 8px 10px;
+        font-size: 0.85em;
+        min-width: 44px;
+        min-height: 40px;
     }
 
-    .tab-item {
-        font-size: 0.58em;
-    }
-
-    /* Widget even smaller — just a tap circle + label */
+    /* Widget strip stays usable */
     .voice-widget-area {
-        padding: 6px 10px;
-        gap: 8px;
+        padding: 8px 12px;
+        gap: 10px;
     }
 
     .widget-cage {
-        max-width: 56px;
-        max-height: 56px;
+        max-width: 60px;
+        max-height: 60px;
     }
 
     .voice-status-pill {
-        font-size: 0.65em;
-        padding: 2px 8px;
+        font-size: 0.78em;
+        padding: 5px 12px;
     }
 
     .section-header {
-        padding: 4px 8px;
-        min-height: 28px;
+        padding: 5px 10px;
+        min-height: 38px;
     }
 
     .section-title {
-        font-size: 0.68em;
+        font-size: 0.8em;
     }
 
+    /* Keep 44px touch targets on small phones too */
     .btn-icon-small {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        min-height: 28px;
-        font-size: 0.65em;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 1em;
     }
 
     .notes-count {
-        font-size: 0.6em;
+        font-size: 0.72em;
     }
 
     .messages-area {
-        padding: 6px;
-        gap: 3px;
+        padding: 8px;
+        gap: 5px;
     }
 
     .message {
-        padding: 6px 8px;
-        font-size: 0.8em;
+        padding: 8px 10px;
+        font-size: 0.88em;
     }
 
     .message-label {
-        font-size: 0.6em;
+        font-size: 0.66em;
     }
 
     .btn-save-joke {
-        padding: 2px 8px;
-        font-size: 0.65em;
+        padding: 7px 12px;
+        font-size: 0.75em;
+        min-height: 34px;
     }
 
     .notes-textarea {
-        padding: 6px;
-        font-size: 0.8em;
-        line-height: 1.45;
+        padding: 8px 10px;
+        font-size: 0.88em;
+        line-height: 1.5;
         background:
             repeating-linear-gradient(transparent,
-                transparent 21px,
-                var(--ruled) 21px,
-                var(--ruled) 22px),
+                transparent 23px,
+                var(--ruled) 23px,
+                var(--ruled) 24px),
             var(--paper);
+    }
+
+    /* Tab bar stays chunky and tappable */
+    .tab-item {
+        font-size: 0.68em;
+        min-height: 48px;
+    }
+
+    .tab-item i {
+        font-size: 1.6em;
     }
 
     /* Help page small-screen tweaks */
