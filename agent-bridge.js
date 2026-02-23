@@ -66,7 +66,10 @@ function init() {
     // Save modal wiring
     initSaveModal();
 
-    // Call button — activates the hidden ElevenLabs widget
+    // Intercept WebSocket BEFORE any widget is created
+    interceptWebSocket();
+
+    // Call button — dynamically creates/destroys the voice widget
     wireCallButton();
 
     // Auth listener
@@ -74,7 +77,6 @@ function init() {
         currentUser = user;
         if (user) {
             console.log('[bridge] User:', user.uid);
-            wireVoiceWidget();
         }
     });
 
@@ -146,36 +148,43 @@ function wireCallButton() {
     if (!callBtn) return;
 
     callBtn.addEventListener('click', () => {
-        const widget = document.querySelector('elevenlabs-convai');
-        if (!widget) {
-            console.warn('[bridge] Widget not found');
-            return;
+        if (voiceActive) {
+            // ---- End the call: remove the widget entirely ----
+            destroyWidget();
+        } else {
+            // ---- Start a call: create a fresh widget ----
+            createWidget();
         }
-
-        // If the widget exposes start/stop methods, use them
-        if (voiceActive && typeof widget.endSession === 'function') {
-            widget.endSession();
-            return;
-        }
-
-        if (!voiceActive && typeof widget.startSession === 'function') {
-            widget.startSession();
-            return;
-        }
-
-        // Fallback: programmatically click the widget's shadow-DOM button
-        const root = widget.shadowRoot;
-        if (root) {
-            const btn = root.querySelector('button') || root.querySelector('[role="button"]');
-            if (btn) {
-                btn.click();
-                return;
-            }
-        }
-
-        // Last resort: dispatch click on the widget element itself
-        widget.click();
     });
+}
+
+function createWidget() {
+    // Guard: don't create duplicates
+    if (document.querySelector('elevenlabs-convai')) return;
+
+    const widget = document.createElement('elevenlabs-convai');
+    widget.setAttribute('agent-id', AGENT_ID);
+
+    // The element must be in the DOM for the custom-element to boot,
+    // but we don't want it to render any UI.  Give it a class that
+    // sets display:none – the widget will still open its WS connection.
+    widget.classList.add('widget-sr-only');
+    document.body.appendChild(widget);
+
+    // Register our save_joke tool on the new widget instance
+    wireVoiceWidget();
+    console.log('[bridge] Widget created — connecting…');
+}
+
+function destroyWidget() {
+    const widget = document.querySelector('elevenlabs-convai');
+    if (widget) widget.remove();
+    voiceActive = false;
+    updateVoiceStatus('idle');
+    currentAgentBubble = null;
+    currentAgentText = '';
+    currentUserBubble = null;
+    console.log('[bridge] Widget destroyed');
 }
 
 // ===================================
@@ -226,9 +235,6 @@ function wireVoiceWidget() {
         }
     });
 
-    // Intercept WebSocket for live transcript
-    interceptWebSocket();
-
     console.log('[bridge] Voice widget wired');
 }
 
@@ -263,12 +269,9 @@ function interceptWebSocket() {
             });
 
             sock.addEventListener('close', () => {
-                voiceActive = false;
-                updateVoiceStatus('idle');
                 appendMessage('system', '🔇 Voice ended');
-                currentAgentBubble = null;
-                currentAgentText = '';
-                currentUserBubble = null;
+                // Tear down the widget element so nothing lingers on screen
+                destroyWidget();
             });
         }
 

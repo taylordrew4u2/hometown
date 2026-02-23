@@ -444,22 +444,21 @@ img {
     }
 }
 
-/* ---- Hidden widget container ---- */
-.widget-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    clip-path: inset(50%);
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
+/* ---- Screen-reader-only widget (created dynamically by JS) ---- */
+.widget-sr-only {
+    position: fixed !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
 }
 
-/* Let the widget still receive pointer events when spoken to */
-.widget-hidden elevenlabs-convai {
-    pointer-events: auto;
+/* Also nuke any position-fixed children the widget shadow DOM creates */
+elevenlabs-convai.widget-sr-only,
+elevenlabs-convai.widget-sr-only * {
+    display: contents !important;
 }
 
 .chat-main {
