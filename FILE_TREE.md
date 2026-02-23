@@ -6,7 +6,7 @@ bit-builder/
 ├── dashboard.html             # Chat interface
 ├── binder.html                # Bitbinder (joke library)
 ├── app.js                     # Shared Firebase initialization & auth
-├── chat.js                    # Dashboard logic
+├── agent-bridge.js            # Unified voice + text chat bridge
 ├── binder.js                  # Bitbinder logic
 ├── style.css                  # Global styling
 ├── firestore.rules            # Firestore security rules
