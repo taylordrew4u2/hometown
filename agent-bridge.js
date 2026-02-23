@@ -140,6 +140,53 @@ function initNotes() {
 }
 
 // ===================================
+// Navigation guard — warn before leaving if there's transcript content
+// ===================================
+
+function setupNavGuard() {
+    // Track whether the user has had any conversation
+    let hasTranscript = false;
+
+    // Watch for new messages added to the transcript
+    const observer = new MutationObserver(() => {
+        if (messagesArea && messagesArea.children.length > 1) {
+            hasTranscript = true;
+        }
+    });
+    if (messagesArea) {
+        observer.observe(messagesArea, { childList: true });
+    }
+
+    // Browser back / refresh / close
+    window.addEventListener('beforeunload', (e) => {
+        if (hasTranscript) {
+            e.preventDefault();
+            // Modern browsers show a generic message; returnValue is required for compat
+            e.returnValue = '';
+        }
+    });
+
+    // Intercept in-page links (tab bar, header buttons)
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href]');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        if (!href || href === '#' || href.startsWith('javascript')) return;
+        // Only guard same-origin navigation away from dashboard
+        if (href === 'dashboard.html') return;
+
+        if (hasTranscript) {
+            e.preventDefault();
+            if (confirm('Your chat transcript will not be saved. Are you sure you want to leave?')) {
+                // Disable the guard so it doesn't fire twice
+                hasTranscript = false;
+                window.location.href = href;
+            }
+        }
+    });
+}
+
+// ===================================
 // 1. IFRAME BRIDGE — listen for postMessage from widget-frame.html
 // ===================================
 
