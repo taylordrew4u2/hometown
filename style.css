@@ -532,6 +532,8 @@ img {
     background: var(--card-bg);
     border-top: 1px solid var(--border);
     padding: 14px 16px;
+    position: relative;
+    z-index: 50;
 }
 
 .input-controls {
@@ -558,6 +560,11 @@ img {
     outline: none;
     border-color: var(--margin-red);
     box-shadow: 0 0 0 3px rgba(255, 106, 61, 0.1);
+}
+
+#message-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Loading / voice status */
@@ -1296,6 +1303,14 @@ img {
     line-height: 1.5;
 }
 
+/* Help content area */
+.help-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* Placeholder list for skeleton pages */
 .placeholder-list {
     display: flex;
@@ -1411,11 +1426,24 @@ img {
         border-right: none;
         border-bottom: 1px solid var(--border);
         padding: 12px;
+        /* Prevent voice widget from capturing touch events meant for input */
+        touch-action: manipulation;
+    }
+
+    .voice-widget-area elevenlabs-convai {
+        pointer-events: auto;
+        touch-action: manipulation;
     }
 
     .conversation-area {
         flex: 1;
         min-height: 200px;
+    }
+
+    .input-area {
+        position: sticky;
+        bottom: 0;
+        z-index: 50;
     }
 
     .messages-area {
@@ -1460,6 +1488,32 @@ img {
         padding: 24px 20px 32px;
         border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     }
+
+    /* Help page mobile tweaks */
+    .help-content {
+        padding: 14px 12px;
+    }
+
+    .placeholder-item {
+        gap: 10px;
+        padding: 14px 12px;
+    }
+
+    .placeholder-item .item-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        font-size: 1em;
+    }
+
+    .placeholder-item .item-title {
+        font-size: 0.9em;
+    }
+
+    .placeholder-item .item-subtitle {
+        font-size: 0.78em;
+        line-height: 1.4;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1476,6 +1530,35 @@ img {
 
     .tab-item {
         font-size: 0.62em;
+    }
+
+    /* Help page small-screen tweaks */
+    .help-content {
+        padding: 10px 8px;
+    }
+
+    .placeholder-item {
+        gap: 8px;
+        padding: 12px 10px;
+    }
+
+    .placeholder-item .item-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        font-size: 0.9em;
+    }
+
+    .placeholder-item .item-title {
+        font-size: 0.85em;
+    }
+
+    .placeholder-item .item-subtitle {
+        font-size: 0.75em;
+    }
+
+    .placeholder-item .item-chevron {
+        display: none;
     }
 }
 

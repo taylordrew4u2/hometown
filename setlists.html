@@ -1,77 +1,60 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bit Builder - Set Lists</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="page-container">
-      <header class="header">
-        <div class="header-left">
-          <h1>📋 Set Lists</h1>
-        </div>
-        <div class="header-right">
-          <a href="dashboard.html" class="btn-secondary">← Back</a>
-        </div>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bit Builder - Set Lists</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-container">
+    <header class="header">
+      <div class="header-left"><h1>📋 Set Lists</h1></div>
+      <div class="header-right">
+        <a href="dashboard.html" class="btn-secondary">← Back</a>
+      </div>
+    </header>
 
-      <main class="setlist-content">
-        <div class="placeholder-list">
-          <div class="placeholder-card">
-            <div class="placeholder-card-header">
-              <i class="fas fa-list-ol"></i>
-              <h3>Open Mic Night</h3>
-            </div>
-            <p class="placeholder-meta">5 jokes · 12 min estimated</p>
+    <main class="setlist-content">
+      <div class="placeholder-list">
+        <div class="placeholder-item">
+          <div class="item-icon orange"><i class="fas fa-list-ol"></i></div>
+          <div class="item-body">
+            <div class="item-title">Open Mic Night</div>
+            <div class="item-subtitle">5 jokes · 12 min estimated</div>
           </div>
-          <div class="placeholder-card">
-            <div class="placeholder-card-header">
-              <i class="fas fa-list-ol"></i>
-              <h3>Saturday Headliner</h3>
-            </div>
-            <p class="placeholder-meta">10 jokes · 25 min estimated</p>
-          </div>
-          <div class="placeholder-card">
-            <div class="placeholder-card-header">
-              <i class="fas fa-list-ol"></i>
-              <h3>Corporate Event</h3>
-            </div>
-            <p class="placeholder-meta">7 jokes · 15 min estimated</p>
-          </div>
+          <div class="item-chevron"><i class="fas fa-chevron-right"></i></div>
         </div>
-        <p class="placeholder-note">
-          Set list management coming soon. You'll be able to drag-and-drop jokes
-          into custom set lists.
-        </p>
-      </main>
+        <div class="placeholder-item">
+          <div class="item-icon blue"><i class="fas fa-list-ol"></i></div>
+          <div class="item-body">
+            <div class="item-title">Saturday Headliner</div>
+            <div class="item-subtitle">10 jokes · 25 min estimated</div>
+          </div>
+          <div class="item-chevron"><i class="fas fa-chevron-right"></i></div>
+        </div>
+        <div class="placeholder-item">
+          <div class="item-icon green"><i class="fas fa-list-ol"></i></div>
+          <div class="item-body">
+            <div class="item-title">Corporate Event</div>
+            <div class="item-subtitle">7 jokes · 15 min estimated</div>
+          </div>
+          <div class="item-chevron"><i class="fas fa-chevron-right"></i></div>
+        </div>
+      </div>
+      <p class="divider">Set list management coming soon — drag-and-drop jokes into custom set lists.</p>
+    </main>
 
-      <button class="fab" title="Create new set list">
-        <i class="fas fa-plus"></i>
-      </button>
+    <button class="fab" title="Create new set list"><i class="fas fa-plus"></i></button>
 
-      <nav class="tab-bar">
-        <a href="dashboard.html" class="tab-item"
-          ><i class="fas fa-house"></i><span>Home</span></a
-        >
-        <a href="binder.html" class="tab-item"
-          ><i class="fas fa-book"></i><span>Jokes</span></a
-        >
-        <a href="setlists.html" class="tab-item active"
-          ><i class="fas fa-list-ol"></i><span>Set Lists</span></a
-        >
-        <a href="recordings.html" class="tab-item"
-          ><i class="fas fa-microphone"></i><span>Recordings</span></a
-        >
-        <a href="help.html" class="tab-item"
-          ><i class="fas fa-circle-question"></i><span>Help</span></a
-        >
-      </nav>
-    </div>
-  </body>
+    <nav class="tab-bar">
+      <a href="dashboard.html" class="tab-item"><i class="fas fa-house"></i><span>Home</span></a>
+      <a href="binder.html" class="tab-item"><i class="fas fa-book"></i><span>Jokes</span></a>
+      <a href="setlists.html" class="tab-item active"><i class="fas fa-list-ol"></i><span>Set Lists</span></a>
+      <a href="recordings.html" class="tab-item"><i class="fas fa-microphone"></i><span>Recordings</span></a>
+      <a href="help.html" class="tab-item"><i class="fas fa-circle-question"></i><span>Help</span></a>
+    </nav>
+  </div>
+</body>
 </html>

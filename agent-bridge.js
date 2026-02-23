@@ -32,6 +32,7 @@ let finalizeTimer = null;
 let currentAgentBubble = null;
 let currentAgentText = '';
 let currentUserBubble = null;
+let voiceActive = false;
 
 const AGENT_ID = 'agent_7401ka31ry6qftr9ab89em3339w9';
 
@@ -74,6 +75,19 @@ function init() {
         messageInput.style.height = 'auto';
         messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
     });
+
+    // Tap / focus on input area should always re‑enable typing
+    const inputArea = document.querySelector('.input-area');
+    if (inputArea) {
+        inputArea.addEventListener('click', () => {
+            if (!waitingForAgent) setInputEnabled(true);
+            messageInput.focus();
+        });
+        inputArea.addEventListener('touchstart', () => {
+            if (!waitingForAgent) setInputEnabled(true);
+            messageInput.focus();
+        }, { passive: true });
+    }
 
     // Clear button
     const clearBtn = document.getElementById('clear-btn');
@@ -178,14 +192,18 @@ function interceptWebSocket() {
             });
 
             sock.addEventListener('open', () => {
+                voiceActive = true;
                 appendMessage('system', '🎤 Voice connected');
             });
 
             sock.addEventListener('close', () => {
+                voiceActive = false;
                 appendMessage('system', '🔇 Voice ended');
                 currentAgentBubble = null;
                 currentAgentText = '';
                 currentUserBubble = null;
+                // Re‑enable text input when voice call ends
+                if (!waitingForAgent) setInputEnabled(true);
             });
         }
 
@@ -434,7 +452,7 @@ function scheduleFinalize() {
             waitingForAgent = false;
             setInputEnabled(true);
         }
-    }, 3000);
+    }, 1500);
 }
 
 async function sendTextMessage() {
@@ -590,7 +608,11 @@ function setBubbleHTML(el, text) {
 }
 
 function setInputEnabled(enabled) {
-    if (messageInput) messageInput.disabled = !enabled;
+    if (messageInput) {
+        messageInput.disabled = !enabled;
+        // On mobile, removing disabled may not restore focus; nudge it
+        if (enabled) messageInput.removeAttribute('disabled');
+    }
     if (sendBtn) {
         sendBtn.disabled = !enabled;
         sendBtn.textContent = enabled ? 'Send' : '...';
