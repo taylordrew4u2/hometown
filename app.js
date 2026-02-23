@@ -114,7 +114,16 @@ window.signUpWithEmail = signUpWithEmail;
 window.signInWithEmail = signInWithEmail;
 window.logOut = logOut;
 
-// Logout button handler (if present)
-if (document.getElementById('logout-btn')) {
-    document.getElementById('logout-btn').addEventListener('click', logOut);
+// Logout button handler — bind after DOM is ready
+function bindLogoutButton() {
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logOut);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindLogoutButton, { once: true });
+} else {
+    bindLogoutButton();
 }

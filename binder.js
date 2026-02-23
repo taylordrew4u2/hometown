@@ -13,46 +13,90 @@ import {
     doc,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
-const { auth, db } = window.firebaseApp;
-
+let auth, db;
 let jokesData = [];
 let currentEditingJokeId = null;
 let allTags = new Set();
+let selectedTags = new Set();
+let jokesUnsubscribe = null;
 
 // Elements
-const jokesList = document.getElementById('jokes-list');
-const emptyState = document.getElementById('empty-state');
-const searchInput = document.getElementById('search-input');
-const tagChips = document.getElementById('tag-chips');
-const editModal = document.getElementById('edit-modal');
-const deleteModal = document.getElementById('delete-modal');
-const editForm = document.getElementById('edit-form');
-const modalCancel = document.getElementById('modal-cancel');
-const cancelDelete = document.getElementById('cancel-delete');
-const confirmDelete = document.getElementById('confirm-delete');
-const modalClose = document.querySelector('.modal-close');
-const backBtn = document.getElementById('back-btn');
+let jokesList, emptyState, searchInput, tagChips;
+let editModal, deleteModal, editForm, modalCancel, cancelDelete, confirmDelete, modalClose, backBtn;
 
-let selectedTags = new Set();
+// ===================================
+// Wait for Firebase to be ready
+// ===================================
+
+const initBinderApp = () => {
+    if (!window.firebaseApp) {
+        console.error('Firebase not initialized yet');
+        setTimeout(initBinderApp, 100);
+        return;
+    }
+
+    auth = window.firebaseApp.auth;
+    db = window.firebaseApp.db;
+
+    // Get DOM elements
+    jokesList = document.getElementById('jokes-list');
+    emptyState = document.getElementById('empty-state');
+    searchInput = document.getElementById('search-input');
+    tagChips = document.getElementById('tag-chips');
+    editModal = document.getElementById('edit-modal');
+    deleteModal = document.getElementById('delete-modal');
+    editForm = document.getElementById('edit-form');
+    modalCancel = document.getElementById('modal-cancel');
+    cancelDelete = document.getElementById('cancel-delete');
+    confirmDelete = document.getElementById('confirm-delete');
+    modalClose = document.querySelector('.modal-close');
+    backBtn = document.getElementById('back-btn');
+
+    // Bind UI event listeners
+    const bindUi = () => {
+        searchInput.addEventListener('input', filterJokes);
+        editForm.addEventListener('submit', saveJokeEdit);
+        modalCancel.addEventListener('click', closeEditModal);
+        modalClose.addEventListener('click', closeEditModal);
+        cancelDelete.addEventListener('click', closeDeleteModal);
+        confirmDelete.addEventListener('click', deleteJoke);
+        backBtn.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindUi, { once: true });
+    } else {
+        bindUi();
+    }
+
+    // Listen for auth state — load jokes once user is available
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            loadJokes();
+        } else {
+            // User logged out — clear data
+            jokesData = [];
+            allTags.clear();
+            selectedTags.clear();
+            if (jokesUnsubscribe) {
+                jokesUnsubscribe();
+                jokesUnsubscribe = null;
+            }
+            if (jokesList) jokesList.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
+        }
+    });
+};
 
 // ===================================
 // Initialize
 // ===================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadJokes();
-    
-    searchInput.addEventListener('input', filterJokes);
-    editForm.addEventListener('submit', saveJokeEdit);
-    modalCancel.addEventListener('click', closeEditModal);
-    modalClose.addEventListener('click', closeEditModal);
-    cancelDelete.addEventListener('click', closeDeleteModal);
-    confirmDelete.addEventListener('click', deleteJoke);
-    backBtn.addEventListener('click', () => {
-        window.location.href = 'dashboard.html';
-    });
-});
+initBinderApp();
 
 // ===================================
 // Load Jokes from Firestore
@@ -62,13 +106,18 @@ function loadJokes() {
     const user = auth.currentUser;
     if (!user) return;
 
+    // Unsubscribe from previous listener if any
+    if (jokesUnsubscribe) {
+        jokesUnsubscribe();
+    }
+
     const jokesQuery = query(
         collection(db, 'jokes'),
         where('userId', '==', user.uid),
         orderBy('createdAt', 'desc')
     );
 
-    onSnapshot(jokesQuery, (snapshot) => {
+    jokesUnsubscribe = onSnapshot(jokesQuery, (snapshot) => {
         jokesData = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
