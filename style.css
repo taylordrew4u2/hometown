@@ -407,13 +407,15 @@ img {
 .voice-widget-area elevenlabs-convai {
     width: 100%;
     max-width: 260px;
+    position: relative;
+    z-index: 10;
 }
 
-.widget-hint {
-    margin-top: 14px;
-    font-size: 0.85em;
-    color: var(--text-secondary);
-    text-align: center;
+/* Keep the widget's internal overlays from covering the tab bar */
+.voice-widget-area elevenlabs-convai::part(widget),
+.voice-widget-area elevenlabs-convai iframe,
+.voice-widget-area elevenlabs-convai div {
+    z-index: 10 !important;
 }
 
 /* Conversation (right) */
@@ -1010,7 +1012,7 @@ img {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    z-index: 200;
+    z-index: 999;
     padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
