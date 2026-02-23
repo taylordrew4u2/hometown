@@ -30,54 +30,53 @@
         </div>
       </header>
 
-      <!-- Main content: voice widget + transcript + notes -->
+      <!-- Main content: widget + transcript + notes -->
       <main class="chat-main">
-        <!-- Voice widget column -->
+        <!-- Voice widget strip -->
         <div class="voice-widget-area">
           <elevenlabs-convai
             agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
           ></elevenlabs-convai>
           <div id="voice-status" class="voice-status-pill">
             <span class="status-dot"></span>
-            <span class="status-label">Tap widget to start</span>
+            <span class="status-label">Tap to start</span>
           </div>
         </div>
 
-        <!-- Right side: transcript + notes in tabs -->
+        <!-- Transcript + Notes split -->
         <div class="workspace-area">
-          <!-- Tab switcher -->
-          <div class="workspace-tabs">
-            <button class="workspace-tab active" data-panel="transcript-panel">
-              <i class="fas fa-comments"></i> Transcript
-            </button>
-            <button class="workspace-tab" data-panel="notes-panel">
-              <i class="fas fa-pencil"></i> Notes
-            </button>
-            <div class="workspace-tab-actions">
-              <button id="clear-btn" class="btn-icon" title="Clear transcript">
+          <!-- Transcript section -->
+          <div class="workspace-section transcript-section">
+            <div class="section-header">
+              <span class="section-title"
+                ><i class="fas fa-comments"></i> Transcript</span
+              >
+              <button
+                id="clear-btn"
+                class="btn-icon-small"
+                title="Clear transcript"
+              >
                 <i class="fas fa-trash-can"></i>
               </button>
             </div>
-          </div>
-
-          <!-- Transcript panel -->
-          <div id="transcript-panel" class="workspace-panel active">
             <div id="messages-area" class="messages-area">
               <div class="message assistant-message">
-                Hey there! 🎭 I'm Bit Builder, your comedy writing assistant.
-                Tap the voice widget and start talking!
+                Hey there! 🎭 I'm Bit Builder. Tap the voice widget and start
+                talking!
               </div>
             </div>
           </div>
 
-          <!-- Notes panel -->
-          <div id="notes-panel" class="workspace-panel">
-            <div class="notes-toolbar">
-              <span class="notes-count"
-                ><i class="fas fa-sticky-note"></i>
-                <span id="notes-char-count">0</span> chars</span
+          <!-- Notes section -->
+          <div class="workspace-section notes-section">
+            <div class="section-header">
+              <span class="section-title"
+                ><i class="fas fa-pencil"></i> Notes</span
               >
-              <div class="notes-toolbar-actions">
+              <div class="section-actions">
+                <span class="notes-count"
+                  ><span id="notes-char-count">0</span> chars</span
+                >
                 <button
                   id="copy-notes-btn"
                   class="btn-icon-small"
