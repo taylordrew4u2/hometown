@@ -363,7 +363,21 @@ img {
     height: 100dvh;
     background: var(--surface);
     padding-bottom: var(--tab-height);
+    padding-bottom: calc(var(--tab-height) + env(safe-area-inset-bottom, 0px));
     overflow: hidden;
+}
+
+/* Compact header on dashboard */
+.header.header-compact {
+    padding: 8px 14px;
+}
+
+.header.header-compact h1 {
+    font-size: 1.15em;
+}
+
+.hide-mobile {
+    display: inline;
 }
 
 .chat-main {
@@ -374,7 +388,7 @@ img {
     overflow: hidden;
 }
 
-/* ---- Voice widget strip (left on desktop, top on mobile) ---- */
+/* ---- Voice widget area ---- */
 .voice-widget-area {
     flex: 0 0 auto;
     display: flex;
@@ -388,23 +402,51 @@ img {
     overflow: hidden;
 }
 
-.voice-widget-area elevenlabs-convai {
-    display: block;
+/*
+   Widget cage — the key to containment.
+   `transform` creates a new containing block so that even
+   position:fixed elements inside the widget can't escape.
+   `contain: strict` further isolates layout/paint.
+*/
+.widget-cage {
+    position: relative;
     width: 100%;
     max-width: 200px;
     max-height: 200px;
     overflow: hidden;
-    position: relative;
-    z-index: 10;
+    transform: translateZ(0);
+    contain: strict;
+    border-radius: var(--radius-md);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Contain widget internals */
-.voice-widget-area elevenlabs-convai::part(widget),
-.voice-widget-area elevenlabs-convai iframe,
-.voice-widget-area elevenlabs-convai div {
-    z-index: 10 !important;
+.widget-cage elevenlabs-convai {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* Nuke any internal fixed/absolute breakouts */
+.widget-cage elevenlabs-convai *,
+.widget-cage elevenlabs-convai::part(widget) {
+    position: relative !important;
+    z-index: 1 !important;
     max-width: 100% !important;
     max-height: 100% !important;
+}
+
+.widget-cage iframe {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    position: relative !important;
+    border: none;
 }
 
 /* Voice status pill */
@@ -441,7 +483,7 @@ img {
     animation: pulse 1.5s ease infinite;
 }
 
-/* ---- Workspace: transcript + notes side-by-side ---- */
+/* ---- Workspace: transcript + notes ---- */
 .workspace-area {
     flex: 1;
     display: flex;
@@ -451,7 +493,6 @@ img {
     overflow: hidden;
 }
 
-/* Each section fills half */
 .workspace-section {
     flex: 1;
     display: flex;
@@ -474,6 +515,7 @@ img {
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    min-height: 36px;
 }
 
 .section-title {
@@ -502,10 +544,10 @@ img {
     font-weight: 600;
 }
 
-/* Icon buttons */
+/* Icon buttons — 44px touch target */
 .btn-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-sm);
     border: none;
     background: var(--surface);
@@ -516,16 +558,20 @@ img {
     justify-content: center;
     font-size: 0.8em;
     transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-icon:hover {
+.btn-icon:hover,
+.btn-icon:active {
     background: var(--border);
     color: var(--text-primary);
 }
 
 .btn-icon-small {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
     border-radius: var(--radius-sm);
     border: none;
     background: var(--surface);
@@ -536,9 +582,11 @@ img {
     justify-content: center;
     font-size: 0.72em;
     transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-icon-small:hover {
+.btn-icon-small:hover,
+.btn-icon-small:active {
     background: var(--border);
     color: var(--text-primary);
 }
@@ -671,9 +719,11 @@ img {
     cursor: pointer;
     transition: all 0.15s ease;
     font-family: var(--font-system);
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-save-joke:hover {
+.btn-save-joke:hover,
+.btn-save-joke:active {
     background: var(--accent-gradient);
     color: #fff;
     border-color: transparent;
@@ -1522,29 +1572,37 @@ img {
         padding: 28px 20px;
     }
 
-    .header {
-        padding: 10px 14px;
+    /* Slim header — icon-only buttons */
+    .header.header-compact {
+        padding: 6px 12px;
     }
 
-    .header-left h1 {
-        font-size: 1.15em;
+    .header.header-compact h1 {
+        font-size: 1.05em;
+    }
+
+    .hide-mobile {
+        display: none;
     }
 
     .header-right {
-        gap: 6px;
+        gap: 4px;
     }
 
     .btn-secondary {
-        padding: 7px 10px;
+        padding: 8px 10px;
         font-size: 0.8em;
+        min-width: 40px;
+        min-height: 36px;
+        justify-content: center;
     }
 
-    /* Stack vertically on tablet/mobile */
+    /* Stack everything vertically */
     .chat-main {
         flex-direction: column;
     }
 
-    /* Widget becomes a compact horizontal strip at top */
+    /* Widget: compact horizontal strip at top */
     .voice-widget-area {
         flex-direction: row;
         border-right: none;
@@ -1554,15 +1612,15 @@ img {
         touch-action: manipulation;
     }
 
-    .voice-widget-area elevenlabs-convai {
-        max-width: 140px;
+    .widget-cage {
+        max-width: 80px;
         max-height: 80px;
-        pointer-events: auto;
-        touch-action: manipulation;
+        border-radius: var(--radius-sm);
+        flex-shrink: 0;
     }
 
     .voice-status-pill {
-        font-size: 0.7em;
+        font-size: 0.72em;
         padding: 3px 10px;
     }
 
@@ -1573,8 +1631,14 @@ img {
         min-height: 0;
     }
 
-    .workspace-section {
-        flex: 1;
+    /* Transcript gets 60%, notes 40% */
+    .transcript-section {
+        flex: 3;
+        min-height: 0;
+    }
+
+    .notes-section {
+        flex: 2;
         min-height: 0;
     }
 
@@ -1584,29 +1648,41 @@ img {
     }
 
     .section-header {
-        padding: 6px 10px;
+        padding: 5px 10px;
+        min-height: 32px;
     }
 
     .section-title {
-        font-size: 0.75em;
+        font-size: 0.72em;
     }
 
     .messages-area {
-        padding: 10px;
-        gap: 5px;
+        padding: 8px;
+        gap: 4px;
     }
 
     .message {
-        max-width: 95%;
+        max-width: 98%;
         font-size: 0.84em;
-        padding: 8px 12px;
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+    }
+
+    .message-label {
+        font-size: 0.64em;
+        margin-bottom: 2px;
     }
 
     .notes-textarea {
-        padding: 10px;
-        font-size: 0.85em;
-        line-height: 1.55;
-        background-size: auto 26px;
+        padding: 8px;
+        font-size: 0.84em;
+        line-height: 1.5;
+        background:
+            repeating-linear-gradient(transparent,
+                transparent 23px,
+                var(--ruled) 23px,
+                var(--ruled) 24px),
+            var(--paper);
     }
 
     .binder-controls {
@@ -1659,35 +1735,36 @@ img {
 }
 
 @media (max-width: 480px) {
-    .header {
-        flex-direction: column;
-        gap: 8px;
-        text-align: center;
-        padding: 8px 10px;
+
+    /* Even slimmer header */
+    .header.header-compact {
+        padding: 4px 8px;
     }
 
-    .header-left h1 {
-        font-size: 1.05em;
+    .header.header-compact h1 {
+        font-size: 0.95em;
     }
 
-    .header-right {
-        width: 100%;
-        justify-content: center;
+    .header-right .btn-secondary {
+        padding: 6px 8px;
+        font-size: 0.75em;
+        min-width: 36px;
+        min-height: 32px;
     }
 
     .tab-item {
-        font-size: 0.6em;
+        font-size: 0.58em;
     }
 
-    /* Even more compact widget strip */
+    /* Widget even smaller — just a tap circle + label */
     .voice-widget-area {
-        padding: 6px 8px;
-        gap: 6px;
+        padding: 6px 10px;
+        gap: 8px;
     }
 
-    .voice-widget-area elevenlabs-convai {
-        max-width: 100px;
-        max-height: 60px;
+    .widget-cage {
+        max-width: 56px;
+        max-height: 56px;
     }
 
     .voice-status-pill {
@@ -1697,37 +1774,54 @@ img {
 
     .section-header {
         padding: 4px 8px;
+        min-height: 28px;
     }
 
     .section-title {
-        font-size: 0.7em;
+        font-size: 0.68em;
     }
 
     .btn-icon-small {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
         font-size: 0.65em;
     }
 
+    .notes-count {
+        font-size: 0.6em;
+    }
+
     .messages-area {
-        padding: 8px 6px;
-        gap: 4px;
+        padding: 6px;
+        gap: 3px;
     }
 
     .message {
-        padding: 7px 10px;
-        font-size: 0.82em;
+        padding: 6px 8px;
+        font-size: 0.8em;
     }
 
     .message-label {
-        font-size: 0.62em;
-        margin-bottom: 2px;
+        font-size: 0.6em;
+    }
+
+    .btn-save-joke {
+        padding: 2px 8px;
+        font-size: 0.65em;
     }
 
     .notes-textarea {
-        padding: 8px 6px;
-        font-size: 0.82em;
-        line-height: 1.5;
+        padding: 6px;
+        font-size: 0.8em;
+        line-height: 1.45;
+        background:
+            repeating-linear-gradient(transparent,
+                transparent 21px,
+                var(--ruled) 21px,
+                var(--ruled) 22px),
+            var(--paper);
     }
 
     /* Help page small-screen tweaks */
