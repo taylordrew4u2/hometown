@@ -4,13 +4,13 @@
 
 // Firebase Configuration (embed directly)
 const firebaseConfig = {
-    apiKey: "AIzaSyBR4Vi0-4MnRmrVfkjyFO_TIC7oVwEmwe0",
-    authDomain: "bit-builder-4c59c.firebaseapp.com",
-    databaseURL: "https://bit-builder-4c59c-default-rtdb.firebaseio.com",
-    projectId: "bit-builder-4c59c",
-    storageBucket: "bit-builder-4c59c.firebasestorage.app",
-    messagingSenderId: "981445293965",
-    appId: "1:981445293965:web:9b95346ee6dbc45b65afc4"
+    apiKey: "AIzaSyAWxOYmOw-SPqGZKfh5zTT6rZ8VTp59frc",
+    authDomain: "pins-and-needles-comedy.firebaseapp.com",
+    projectId: "pins-and-needles-comedy",
+    storageBucket: "pins-and-needles-comedy.firebasestorage.app",
+    messagingSenderId: "7832575507",
+    appId: "1:7832575507:web:71704c27cbc7f2af3f69e6",
+    measurementId: "G-L45RC055SF"
 };
 
 // Initialize Firebase

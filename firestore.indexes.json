@@ -2,7 +2,7 @@
   "indexes": [
     {
       "collectionGroup": "jokes",
-      "queryScope": "Collection",
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "userId",
@@ -16,7 +16,7 @@
     },
     {
       "collectionGroup": "conversations",
-      "queryScope": "Collection",
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "userId",
