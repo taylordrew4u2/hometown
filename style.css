@@ -360,8 +360,10 @@ img {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
     background: var(--surface);
     padding-bottom: var(--tab-height);
+    overflow: hidden;
 }
 
 .chat-main {
@@ -372,52 +374,60 @@ img {
     overflow: hidden;
 }
 
-/* Voice widget (left) */
+/* ---- Voice widget strip (left on desktop, top on mobile) ---- */
 .voice-widget-area {
-    flex: 0 0 260px;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    padding: 24px 16px;
+    gap: 12px;
+    padding: 16px;
     border-right: 1px solid var(--border);
     background: var(--card-bg);
+    overflow: hidden;
 }
 
 .voice-widget-area elevenlabs-convai {
+    display: block;
     width: 100%;
-    max-width: 240px;
+    max-width: 200px;
+    max-height: 200px;
+    overflow: hidden;
     position: relative;
     z-index: 10;
 }
 
-/* Keep the widget's internal overlays from covering the tab bar */
+/* Contain widget internals */
 .voice-widget-area elevenlabs-convai::part(widget),
 .voice-widget-area elevenlabs-convai iframe,
 .voice-widget-area elevenlabs-convai div {
     z-index: 10 !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
 }
 
 /* Voice status pill */
 .voice-status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 16px;
+    gap: 6px;
+    padding: 4px 12px;
     border-radius: var(--radius-pill);
     background: var(--surface);
-    font-size: 0.8em;
+    font-size: 0.75em;
     font-weight: 600;
     color: var(--text-secondary);
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .voice-status-pill .status-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--text-tertiary);
+    flex-shrink: 0;
     transition: background 0.3s ease;
 }
 
@@ -431,64 +441,71 @@ img {
     animation: pulse 1.5s ease infinite;
 }
 
-/* Workspace area (right) */
+/* ---- Workspace: transcript + notes side-by-side ---- */
 .workspace-area {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Each section fills half */
+.workspace-section {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
-    background: var(--paper);
+    min-height: 0;
+    overflow: hidden;
 }
 
-/* Workspace tab bar */
-.workspace-tabs {
+.workspace-section+.workspace-section {
+    border-left: 1px solid var(--border);
+}
+
+/* Section headers */
+.section-header {
     display: flex;
     align-items: center;
-    gap: 0;
+    justify-content: space-between;
+    padding: 8px 12px;
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
-    padding: 0 12px;
+    flex-shrink: 0;
 }
 
-.workspace-tab {
-    padding: 12px 20px;
-    font-size: 0.88em;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s ease;
+.section-title {
+    font-size: 0.82em;
+    font-weight: 700;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 6px;
-    font-family: var(--font-system);
 }
 
-.workspace-tab:hover {
-    color: var(--text-secondary);
-}
-
-.workspace-tab.active {
+.section-title i {
     color: var(--margin-red);
-    border-bottom-color: var(--margin-red);
+    font-size: 0.9em;
 }
 
-.workspace-tab i {
-    font-size: 0.95em;
-}
-
-.workspace-tab-actions {
-    margin-left: auto;
+.section-actions {
     display: flex;
-    gap: 4px;
+    align-items: center;
+    gap: 6px;
+}
+
+.notes-count {
+    font-size: 0.72em;
+    color: var(--text-tertiary);
+    font-weight: 600;
 }
 
 /* Icon buttons */
 .btn-icon {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-sm);
     border: none;
     background: var(--surface);
@@ -497,7 +514,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85em;
+    font-size: 0.8em;
     transition: all 0.15s ease;
 }
 
@@ -507,8 +524,8 @@ img {
 }
 
 .btn-icon-small {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: var(--radius-sm);
     border: none;
     background: var(--surface);
@@ -517,7 +534,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.78em;
+    font-size: 0.72em;
     transition: all 0.15s ease;
 }
 
@@ -526,67 +543,55 @@ img {
     color: var(--text-primary);
 }
 
-/* Workspace panels */
-.workspace-panel {
-    display: none;
-    flex: 1;
-    flex-direction: column;
-    min-height: 0;
-}
-
-.workspace-panel.active {
-    display: flex;
-}
-
-/* Messages area – clean modern look */
+/* ---- Transcript / Messages ---- */
 .messages-area {
     flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 20px;
+    gap: 6px;
+    padding: 12px;
     background: var(--paper);
     -webkit-overflow-scrolling: touch;
 }
 
 .message {
-    padding: 12px 16px;
-    border-radius: var(--radius-lg);
-    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    max-width: 95%;
     word-wrap: break-word;
-    animation: slideIn 0.25s ease;
-    font-size: 0.92em;
-    line-height: 1.55;
+    animation: slideIn 0.2s ease;
+    font-size: 0.88em;
+    line-height: 1.5;
     position: relative;
 }
 
 .message-label {
     display: block;
-    font-size: 0.72em;
+    font-size: 0.68em;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     opacity: 0.7;
 }
 
 .message-body {
-    line-height: 1.55;
+    line-height: 1.5;
 }
 
 .message code {
     background: rgba(0, 0, 0, 0.06);
-    padding: 2px 5px;
-    border-radius: 4px;
+    padding: 2px 4px;
+    border-radius: 3px;
     font-family: var(--font-mono);
-    font-size: 0.9em;
+    font-size: 0.88em;
 }
 
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(4px);
     }
 
     to {
@@ -624,11 +629,11 @@ img {
     align-self: center;
     background: rgba(52, 199, 89, 0.08);
     color: var(--success);
-    font-size: 0.85em;
+    font-size: 0.8em;
     font-weight: 600;
     border: 1px solid rgba(52, 199, 89, 0.2);
     border-radius: var(--radius-pill);
-    padding: 8px 20px;
+    padding: 6px 16px;
     max-width: none;
 }
 
@@ -636,12 +641,12 @@ img {
     align-self: center;
     background: rgba(255, 149, 0, 0.08);
     color: var(--warning);
-    font-size: 0.85em;
+    font-size: 0.8em;
     font-weight: 600;
     text-align: center;
     border: 1px solid rgba(255, 149, 0, 0.2);
     border-radius: var(--radius-pill);
-    padding: 8px 20px;
+    padding: 6px 16px;
     max-width: none;
 }
 
@@ -655,9 +660,9 @@ img {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-top: 8px;
-    padding: 4px 12px;
-    font-size: 0.75em;
+    margin-top: 6px;
+    padding: 3px 10px;
+    font-size: 0.7em;
     font-weight: 600;
     color: var(--text-secondary);
     background: var(--surface);
@@ -675,50 +680,26 @@ img {
 }
 
 .btn-save-joke i {
-    font-size: 0.9em;
+    font-size: 0.85em;
 }
 
-/* ---------- Notes Panel ---------- */
-
-.notes-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border);
-    font-size: 0.8em;
-    color: var(--text-tertiary);
-}
-
-.notes-count {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-}
-
-.notes-toolbar-actions {
-    display: flex;
-    gap: 4px;
-}
-
+/* ---- Notes section ---- */
 .notes-textarea {
     flex: 1;
     width: 100%;
-    padding: 20px;
+    padding: 12px;
     border: none;
     outline: none;
     resize: none;
     font-family: var(--font-system);
-    font-size: 0.95em;
-    line-height: 1.7;
+    font-size: 0.9em;
+    line-height: 1.65;
     color: var(--text-primary);
     background:
         repeating-linear-gradient(transparent,
-            transparent 31px,
-            var(--ruled) 31px,
-            var(--ruled) 32px),
+            transparent 27px,
+            var(--ruled) 27px,
+            var(--ruled) 28px),
         var(--paper);
     -webkit-overflow-scrolling: touch;
 }
