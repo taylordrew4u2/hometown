@@ -11,9 +11,9 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
-// ElevenLabs Configuration
-const ELEVENLABS_API_KEY = 'sk_40b434d2a8deebbb7c6683dba782412a0dcc9ff571d042ca';
-const ELEVENLABS_AGENT_ID = 'agent_7401ka31ry6qftr9ab89em3339w9';
+// ElevenLabs Configuration (prefer environment config, fallback to provided values)
+const ELEVENLABS_API_KEY = functions.config()?.elevenlabs?.key || 'sk_40b434d2a8deebbb7c6683dba782412a0dcc9ff571d042ca';
+const ELEVENLABS_AGENT_ID = functions.config()?.elevenlabs?.agent_id || 'agent_7401ka31ry6qftr9ab89em3339w9';
 const ELEVENLABS_API_URL = 'https://api.elevenlabs.io/v1/convai/chat';
 
 // ===================================
