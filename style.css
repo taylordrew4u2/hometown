@@ -444,21 +444,21 @@ img {
     }
 }
 
-/* ---- Screen-reader-only widget (created dynamically by JS) ---- */
-.widget-sr-only {
+/*
+   Widget containment: transform creates a new containing block,
+   so position:fixed shadow-DOM children become relative to THIS
+   element instead of the viewport.  scale(0) collapses it to
+   nothing.  Applied by JS after the WebSocket connects.
+*/
+.widget-collapsed {
+    transform: scale(0) !important;
+    transform-origin: bottom right !important;
     position: fixed !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
+    bottom: 0 !important;
+    right: 0 !important;
     opacity: 0 !important;
     pointer-events: none !important;
     z-index: -1 !important;
-}
-
-/* Also nuke any position-fixed children the widget shadow DOM creates */
-elevenlabs-convai.widget-sr-only,
-elevenlabs-convai.widget-sr-only * {
-    display: contents !important;
 }
 
 .chat-main {

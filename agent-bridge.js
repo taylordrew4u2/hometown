@@ -164,16 +164,34 @@ function createWidget() {
 
     const widget = document.createElement('elevenlabs-convai');
     widget.setAttribute('agent-id', AGENT_ID);
-
-    // The element must be in the DOM for the custom-element to boot,
-    // but we don't want it to render any UI.  Give it a class that
-    // sets display:none – the widget will still open its WS connection.
-    widget.classList.add('widget-sr-only');
     document.body.appendChild(widget);
+
+    // Poll for the shadow-DOM button, then auto-click it.
+    // The click must happen within ~5 s of the user gesture so the
+    // browser grants microphone permission.
+    let attempts = 0;
+    const poll = setInterval(() => {
+        const root = widget.shadowRoot;
+        if (root) {
+            const btn = root.querySelector('button')
+                     || root.querySelector('[role="button"]');
+            if (btn) {
+                clearInterval(poll);
+                btn.click();   // starts session (mic + WS)
+                console.log('[bridge] Auto-clicked widget button');
+                return;
+            }
+        }
+        if (++attempts > 60) {          // 6 s timeout
+            clearInterval(poll);
+            console.warn('[bridge] Widget button not found — removing widget');
+            destroyWidget();
+        }
+    }, 100);
 
     // Register our save_joke tool on the new widget instance
     wireVoiceWidget();
-    console.log('[bridge] Widget created — connecting…');
+    console.log('[bridge] Widget created — waiting for shadow-DOM button…');
 }
 
 function destroyWidget() {
@@ -266,6 +284,10 @@ function interceptWebSocket() {
                 voiceActive = true;
                 updateVoiceStatus('connected');
                 appendMessage('system', '🎤 Voice connected — start talking!');
+                // Now that WS is open, collapse the widget with transform
+                // so its position:fixed shadow-DOM children can’t escape.
+                const w = document.querySelector('elevenlabs-convai');
+                if (w) w.classList.add('widget-collapsed');
             });
 
             sock.addEventListener('close', () => {
