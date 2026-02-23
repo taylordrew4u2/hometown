@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Bit Builder - Chat</title>
     <link
       rel="stylesheet"
@@ -19,46 +22,83 @@
         </div>
         <div class="header-right">
           <a id="bitbinder-btn" class="btn-secondary" href="binder.html"
-            >📚 Bitbinder</a
+            ><i class="fas fa-book"></i> Bitbinder</a
           >
-          <button id="logout-btn" class="btn-secondary">Logout</button>
+          <button id="logout-btn" class="btn-secondary">
+            <i class="fas fa-right-from-bracket"></i> Logout
+          </button>
         </div>
       </header>
 
-      <!-- Unified: voice widget + conversation + text input -->
+      <!-- Main content: voice widget + transcript + notes -->
       <main class="chat-main">
-        <!-- Left side: Voice widget -->
+        <!-- Voice widget column -->
         <div class="voice-widget-area">
           <elevenlabs-convai
             agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
           ></elevenlabs-convai>
+          <div id="voice-status" class="voice-status-pill">
+            <span class="status-dot"></span>
+            <span class="status-label">Tap widget to start</span>
+          </div>
         </div>
 
-        <!-- Right side: Transcript + text input -->
-        <div class="conversation-area">
-          <div class="transcript-header">
-            <span>💬 Conversation</span>
-            <button id="clear-btn" class="btn-small btn-edit">Clear</button>
-          </div>
-
-          <div id="messages-area" class="messages-area">
-            <div class="message assistant-message">
-              Hey there! 🎭 I'm Bit Builder, your comedy writing assistant.
-              Speak or type to get started!
+        <!-- Right side: transcript + notes in tabs -->
+        <div class="workspace-area">
+          <!-- Tab switcher -->
+          <div class="workspace-tabs">
+            <button class="workspace-tab active" data-panel="transcript-panel">
+              <i class="fas fa-comments"></i> Transcript
+            </button>
+            <button class="workspace-tab" data-panel="notes-panel">
+              <i class="fas fa-pencil"></i> Notes
+            </button>
+            <div class="workspace-tab-actions">
+              <button id="clear-btn" class="btn-icon" title="Clear transcript">
+                <i class="fas fa-trash-can"></i>
+              </button>
             </div>
           </div>
 
-          <div class="input-area">
-            <form id="text-chat-form" class="input-controls">
-              <textarea
-                id="message-input"
-                placeholder="Type a message..."
-                rows="1"
-              ></textarea>
-              <button type="submit" id="send-btn" class="btn-primary">
-                Send
-              </button>
-            </form>
+          <!-- Transcript panel -->
+          <div id="transcript-panel" class="workspace-panel active">
+            <div id="messages-area" class="messages-area">
+              <div class="message assistant-message">
+                Hey there! 🎭 I'm Bit Builder, your comedy writing assistant.
+                Tap the voice widget and start talking!
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes panel -->
+          <div id="notes-panel" class="workspace-panel">
+            <div class="notes-toolbar">
+              <span class="notes-count"
+                ><i class="fas fa-sticky-note"></i>
+                <span id="notes-char-count">0</span> chars</span
+              >
+              <div class="notes-toolbar-actions">
+                <button
+                  id="copy-notes-btn"
+                  class="btn-icon-small"
+                  title="Copy notes"
+                >
+                  <i class="fas fa-copy"></i>
+                </button>
+                <button
+                  id="clear-notes-btn"
+                  class="btn-icon-small"
+                  title="Clear notes"
+                >
+                  <i class="fas fa-eraser"></i>
+                </button>
+              </div>
+            </div>
+            <textarea
+              id="notes-input"
+              class="notes-textarea"
+              placeholder="Jot down ideas, bits, or observations while you talk..."
+            ></textarea>
           </div>
         </div>
       </main>
@@ -123,7 +163,7 @@
     <!-- App Scripts -->
     <script type="module" src="app.js"></script>
 
-    <!-- Unified: voice bridge + text chat + save -->
+    <!-- Voice bridge + save -->
     <script type="module" src="agent-bridge.js"></script>
   </body>
 </html>
