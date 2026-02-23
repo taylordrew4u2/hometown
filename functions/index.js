@@ -378,3 +378,36 @@ exports.health = functions.https.onRequest((req, res) => {
         message: 'Bit Builder Cloud Functions are running!'
     });
 });
+
+// ===================================
+// getSignedUrl - Get authenticated WebSocket URL for text chat
+// ===================================
+
+exports.getSignedUrl = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError(
+            'unauthenticated',
+            'User must be authenticated'
+        );
+    }
+
+    try {
+        const response = await axios.get(
+            `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${ELEVENLABS_AGENT_ID}`,
+            {
+                headers: {
+                    'xi-api-key': ELEVENLABS_API_KEY
+                },
+                timeout: 10000
+            }
+        );
+
+        return { signedUrl: response.data.signed_url };
+    } catch (error) {
+        console.error('Error getting signed URL:', error.response?.data || error.message);
+        throw new functions.https.HttpsError(
+            'internal',
+            'Failed to get signed URL: ' + (error.response?.data?.detail || error.message)
+        );
+    }
+});
