@@ -3,6 +3,7 @@
 //
 // Listens for tool-call events from the widget and
 // executes them against Firestore using the logged-in user's auth.
+// Also captures live transcripts from the voice conversation.
 // ===================================
 
 import {
@@ -14,6 +15,12 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/fi
 
 let auth, db;
 let currentUser = null;
+
+// Transcript state
+let transcriptArea = null;
+let currentAgentBubble = null;
+let currentAgentText = '';
+let currentUserBubble = null;
 
 // ===================================
 // Wait for Firebase to be ready, then wire up the widget
@@ -27,6 +34,16 @@ function init() {
 
     auth = window.firebaseApp.auth;
     db = window.firebaseApp.db;
+
+    transcriptArea = document.getElementById('voice-transcript');
+
+    // Clear transcript button
+    const clearBtn = document.getElementById('clear-transcript-btn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (transcriptArea) transcriptArea.innerHTML = '';
+        });
+    }
 
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
@@ -54,7 +71,14 @@ function wireWidget() {
         if (typeof widget.registerClientTool === 'function') {
             widget.registerClientTool('save_joke', async (params) => {
                 console.log('[agent-bridge] save_joke called:', params);
-                return await handleToolCall('save_joke', params);
+                const result = await handleToolCall('save_joke', params);
+                // Show save confirmation in the transcript
+                if (result.success) {
+                    appendTranscript('tool', '✅ Joke saved to Bitbinder!');
+                } else {
+                    appendTranscript('tool', '❌ ' + (result.error || 'Failed to save joke'));
+                }
+                return result;
             });
             console.log('[agent-bridge] Registered save_joke client tool');
             return true;
@@ -86,18 +110,196 @@ function wireWidget() {
 
         try {
             const result = await handleToolCall(tool_name, parameters);
+            if (result.success) {
+                appendTranscript('tool', '✅ Joke saved to Bitbinder!');
+            }
             if (typeof callback === 'function') {
                 callback(result);
             }
         } catch (err) {
             console.error('[agent-bridge] Tool call error:', err);
+            appendTranscript('tool', '❌ ' + err.message);
             if (typeof callback === 'function') {
                 callback({ error: err.message });
             }
         }
     });
 
+    // ===================================
+    // Intercept WebSocket for live transcript
+    // ===================================
+    interceptWidgetWebSocket(widget);
+
     console.log('[agent-bridge] Widget wired up, waiting for tool registration...');
+}
+
+// ===================================
+// Intercept the widget's WebSocket to capture transcripts
+// ===================================
+
+function interceptWidgetWebSocket(widget) {
+    // Monkey-patch WebSocket to capture the widget's connection
+    const OriginalWebSocket = window.WebSocket;
+    let intercepted = false;
+
+    window.WebSocket = function(url, protocols) {
+        const ws = protocols
+            ? new OriginalWebSocket(url, protocols)
+            : new OriginalWebSocket(url);
+
+        // Only intercept ElevenLabs WebSocket connections
+        if (typeof url === 'string' && url.includes('elevenlabs.io')) {
+            console.log('[agent-bridge] Intercepted ElevenLabs WebSocket');
+            intercepted = true;
+
+            const origOnMessage = ws.onmessage;
+
+            // Use addEventListener so we don't overwrite the widget's handler
+            ws.addEventListener('message', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleTranscriptMessage(data);
+                } catch {
+                    // Binary audio frame, ignore
+                }
+            });
+
+            // Restore original WebSocket after interception
+            ws.addEventListener('open', () => {
+                appendTranscript('system', '🎤 Voice session connected');
+            });
+
+            ws.addEventListener('close', () => {
+                appendTranscript('system', '🔇 Voice session ended');
+                currentAgentBubble = null;
+                currentAgentText = '';
+                currentUserBubble = null;
+            });
+        }
+
+        return ws;
+    };
+
+    // Copy static properties
+    window.WebSocket.prototype = OriginalWebSocket.prototype;
+    window.WebSocket.CONNECTING = OriginalWebSocket.CONNECTING;
+    window.WebSocket.OPEN = OriginalWebSocket.OPEN;
+    window.WebSocket.CLOSING = OriginalWebSocket.CLOSING;
+    window.WebSocket.CLOSED = OriginalWebSocket.CLOSED;
+}
+
+// ===================================
+// Handle transcript messages from the WebSocket
+// ===================================
+
+function handleTranscriptMessage(data) {
+    switch (data.type) {
+        case 'user_transcript': {
+            const evt = data.user_transcription_event || data;
+            const text = evt.user_transcript || '';
+            if (!text) break;
+
+            if (evt.is_final) {
+                // Final transcript — replace or create a finalized bubble
+                if (currentUserBubble) {
+                    currentUserBubble.textContent = text;
+                    currentUserBubble.classList.remove('interim');
+                    currentUserBubble = null;
+                } else {
+                    appendTranscript('user', text);
+                }
+            } else {
+                // Interim — create or update a tentative bubble
+                if (!currentUserBubble) {
+                    currentUserBubble = appendTranscript('user', text, true);
+                    currentUserBubble.classList.add('interim');
+                } else {
+                    currentUserBubble.textContent = text;
+                }
+            }
+            break;
+        }
+
+        case 'agent_response': {
+            const evt = data.agent_response_event || data;
+            const text = evt.agent_response || '';
+            if (!text) break;
+
+            if (!currentAgentBubble) {
+                currentAgentBubble = appendTranscript('assistant', text, true);
+                currentAgentText = text;
+            } else {
+                currentAgentText = text;
+                updateBubbleHTML(currentAgentBubble, currentAgentText);
+            }
+            break;
+        }
+
+        case 'agent_response_correction': {
+            const evt = data.agent_response_correction_event || data;
+            const text = evt.agent_response || evt.agent_response_correction || '';
+            if (text && currentAgentBubble) {
+                currentAgentText = text;
+                updateBubbleHTML(currentAgentBubble, currentAgentText);
+            }
+            break;
+        }
+
+        case 'interruption':
+            // Agent was interrupted — finalize current bubble
+            if (currentAgentBubble) {
+                currentAgentBubble = null;
+                currentAgentText = '';
+            }
+            break;
+
+        case 'turn_end':
+        case 'end_of_turn':
+            // Finalize any open bubbles
+            currentAgentBubble = null;
+            currentAgentText = '';
+            currentUserBubble = null;
+            break;
+    }
+}
+
+// ===================================
+// Transcript DOM helpers
+// ===================================
+
+function appendTranscript(role, content, returnEl = false) {
+    if (!transcriptArea) {
+        transcriptArea = document.getElementById('voice-transcript');
+    }
+    if (!transcriptArea) return null;
+
+    const div = document.createElement('div');
+    div.className = 'message ' + role + '-message';
+
+    if (role === 'assistant') {
+        updateBubbleHTML(div, content);
+    } else {
+        div.textContent = content;
+    }
+
+    transcriptArea.appendChild(div);
+    transcriptArea.scrollTop = transcriptArea.scrollHeight;
+
+    if (returnEl) return div;
+    return div;
+}
+
+function updateBubbleHTML(el, text) {
+    el.innerHTML = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    if (transcriptArea) {
+        transcriptArea.scrollTop = transcriptArea.scrollHeight;
+    }
 }
 
 // ===================================

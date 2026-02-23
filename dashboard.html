@@ -35,11 +35,22 @@
         </button>
       </div>
 
-      <!-- Voice Mode - ElevenLabs widget -->
-      <main id="voice-mode" class="chat-container">
-        <elevenlabs-convai
-          agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
-        ></elevenlabs-convai>
+      <!-- Voice Mode - ElevenLabs widget + live transcript -->
+      <main id="voice-mode" class="chat-container voice-layout">
+        <div class="voice-widget-area">
+          <elevenlabs-convai
+            agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
+          ></elevenlabs-convai>
+        </div>
+        <div class="voice-transcript-area">
+          <div class="transcript-header">
+            <span>📝 Live Transcript</span>
+            <button id="clear-transcript-btn" class="btn-small btn-edit">
+              Clear
+            </button>
+          </div>
+          <div id="voice-transcript" class="messages-area"></div>
+        </div>
       </main>
 
       <!-- Text Mode - type to the agent -->
@@ -127,13 +138,13 @@
         const textTab = document.getElementById("text-tab");
 
         if (mode === "voice") {
-          voiceMode.style.display = "";
+          voiceMode.style.display = "flex";
           textMode.style.display = "none";
           voiceTab.classList.add("active");
           textTab.classList.remove("active");
         } else {
           voiceMode.style.display = "none";
-          textMode.style.display = "";
+          textMode.style.display = "flex";
           voiceTab.classList.remove("active");
           textTab.classList.add("active");
           document.getElementById("message-input")?.focus();

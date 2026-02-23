@@ -193,7 +193,7 @@ function handleWSMessage(event) {
         return null; // binary audio frame
     }
 
-    console.log('[text-chat] Received:', data.type);
+    console.log('[text-chat] Received:', data.type, JSON.stringify(data).slice(0, 300));
 
     switch (data.type) {
         case 'conversation_initiation_metadata': {
@@ -338,12 +338,9 @@ async function sendMessage() {
             }
         }
 
-        // Send user text
-        ws.send(JSON.stringify({
-            type: 'user_message',
-            text: text
-        }));
-        console.log('[text-chat] Sent user_message:', text);
+        // Send user text (ElevenLabs ConvAI expects just { text })
+        ws.send(JSON.stringify({ text }));
+        console.log('[text-chat] Sent text input:', text);
 
         // Safety timeout
         setTimeout(() => {
