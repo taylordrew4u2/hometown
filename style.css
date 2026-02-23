@@ -370,14 +370,96 @@ img {
 /* Compact header on dashboard */
 .header.header-compact {
     padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .header.header-compact h1 {
     font-size: 1.15em;
+    white-space: nowrap;
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
 .hide-mobile {
     display: inline;
+}
+
+/* ---- Call button (phone icon) ---- */
+.call-button {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent-gradient);
+    color: #fff;
+    font-size: 1.3em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(255, 106, 61, 0.4);
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.call-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 106, 61, 0.5);
+}
+
+.call-button:active {
+    transform: scale(0.95);
+}
+
+.call-button.active {
+    background: var(--danger);
+    box-shadow: 0 4px 14px rgba(255, 59, 48, 0.4);
+    animation: callPulse 2s ease infinite;
+}
+
+.call-button.active i::before {
+    content: "\f3dd";
+    /* fa-phone-slash */
+}
+
+@keyframes callPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 14px rgba(255, 59, 48, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 4px 24px rgba(255, 59, 48, 0.7);
+    }
+}
+
+/* ---- Hidden widget container ---- */
+.widget-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* Let the widget still receive pointer events when spoken to */
+.widget-hidden elevenlabs-convai {
+    pointer-events: auto;
 }
 
 .chat-main {
@@ -388,59 +470,15 @@ img {
     overflow: hidden;
 }
 
-/* ---- Voice widget area ---- */
-.voice-widget-area {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 16px;
-    border-right: 1px solid var(--border);
-    background: var(--card-bg);
-    overflow: hidden;
-    clip-path: inset(0 0 0 0);
-}
-
-/*
-   Widget cage uses clip-path: inset(0) which is the ONLY
-   CSS technique that clips position:fixed Shadow DOM children.
-   overflow:hidden doesn't work, contain:strict doesn't pierce
-   shadow DOM, but clip-path does.
-*/
-.widget-cage {
-    position: relative;
-    width: 100%;
-    max-width: 200px;
-    max-height: 200px;
-    overflow: hidden;
-    clip-path: inset(0 0 0 0);
-    border-radius: var(--radius-md);
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--surface);
-}
-
-.widget-cage elevenlabs-convai {
-    display: block;
-    width: 100%;
-    height: 100%;
-    position: relative;
-    z-index: 1;
-}
-
-/* Voice status pill */
+/* Voice status pill (in header) */
 .voice-status-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 12px;
+    padding: 5px 14px;
     border-radius: var(--radius-pill);
     background: var(--surface);
-    font-size: 0.75em;
+    font-size: 0.78em;
     font-weight: 600;
     color: var(--text-secondary);
     transition: all 0.3s ease;
@@ -448,8 +486,8 @@ img {
 }
 
 .voice-status-pill .status-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--text-tertiary);
     flex-shrink: 0;
@@ -457,7 +495,7 @@ img {
 }
 
 .voice-status-pill.connected {
-    background: rgba(52, 199, 89, 0.1);
+    background: rgba(52, 199, 89, 0.12);
     color: var(--success);
 }
 
@@ -1588,36 +1626,16 @@ img {
         flex-direction: column;
     }
 
-    /*
-       Widget area: horizontal strip at top.
-       clip-path: inset(0) is the nuclear option — it clips
-       ALL descendants, even position:fixed shadow-DOM children.
-    */
-    .voice-widget-area {
-        flex-direction: row;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        padding: 10px 16px;
-        gap: 12px;
-        touch-action: manipulation;
-        clip-path: inset(0 0 0 0);
-    }
-
-    .widget-cage {
-        max-width: 72px;
-        max-height: 72px;
-        border-radius: var(--radius-md);
-        flex-shrink: 0;
+    /* Call button + status pill in header */
+    .call-button {
+        width: 46px;
+        height: 46px;
+        font-size: 1.15em;
     }
 
     .voice-status-pill {
-        font-size: 0.82em;
-        padding: 6px 14px;
-    }
-
-    .voice-status-pill .status-dot {
-        width: 9px;
-        height: 9px;
+        font-size: 0.72em;
+        padding: 4px 10px;
     }
 
     /* Stack transcript + notes vertically */
@@ -1786,20 +1804,20 @@ img {
         min-height: 40px;
     }
 
-    /* Widget strip stays usable */
-    .voice-widget-area {
-        padding: 8px 12px;
-        gap: 10px;
+    /* Call button smaller on tiny screens */
+    .call-button {
+        width: 42px;
+        height: 42px;
+        font-size: 1.05em;
     }
 
-    .widget-cage {
-        max-width: 60px;
-        max-height: 60px;
+    .header-center {
+        gap: 6px;
     }
 
     .voice-status-pill {
-        font-size: 0.78em;
-        padding: 5px 12px;
+        font-size: 0.68em;
+        padding: 3px 8px;
     }
 
     .section-header {
