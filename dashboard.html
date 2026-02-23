@@ -23,14 +23,23 @@
 
       <!-- Agent Widget - direct communication with ElevenLabs agent -->
       <main class="chat-container">
-        <elevenlabs-convai agent-id="agent_7401ka31ry6qftr9ab89em3339w9"></elevenlabs-convai>
+        <elevenlabs-convai
+          agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
+        ></elevenlabs-convai>
       </main>
     </div>
 
     <!-- ElevenLabs Conversational AI Widget -->
-    <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+    <script
+      src="https://elevenlabs.io/convai-widget/index.js"
+      async
+      type="text/javascript"
+    ></script>
 
     <!-- App Scripts (Firebase SDK loaded via ES module imports in app.js) -->
     <script type="module" src="app.js"></script>
+
+    <!-- Firebase ↔ Agent bridge: handles tool calls from the widget -->
+    <script type="module" src="agent-bridge.js"></script>
   </body>
 </html>
