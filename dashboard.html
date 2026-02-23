@@ -1,52 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bit Builder - Chat</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <div class="dashboard-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <h1>🎭 Bit Builder</h1>
-            </div>
-            <div class="header-right">
-                <button id="bitbinder-btn" class="btn-secondary">📚 Bitbinder</button>
-                <button id="logout-btn" class="btn-secondary">Logout</button>
-            </div>
-        </header>
-
-        <!-- Chat Container -->
-        <main class="chat-container">
-            <!-- Messages Area -->
-            <div id="messages-area" class="messages-area"></div>
-
-            <!-- Loading Indicator -->
-            <div id="loading-indicator" class="loading-indicator hidden">
-                <div class="spinner"></div>
-                <p>Bit Builder is thinking...</p>
-            </div>
-        </main>
-
-        <!-- Input Area -->
-        <div class="input-area">
-            <div class="input-controls">
-                <input 
-                    type="text" 
-                    id="message-input" 
-                    placeholder="Tell me a joke or ask me to help with comedy..."
-                    autocomplete="off"
-                >
-                <button id="send-btn" class="btn-send">Send</button>
-                <button id="voice-btn" class="btn-voice" title="Record voice message">🎤</button>
-            </div>
-            <div id="voice-status" class="voice-status hidden"></div>
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <h1>🎭 Bit Builder</h1>
         </div>
-    </div>
+        <div class="header-right">
+          <a id="bitbinder-btn" class="btn-secondary" href="binder.html"
+            >📚 Bitbinder</a
+          >
+          <button id="logout-btn" class="btn-secondary">Logout</button>
+        </div>
+      </header>
 
+      <!-- Chat Container -->
+      <main class="chat-container">
+        <!-- Messages Area -->
+        <div id="messages-area" class="messages-area"></div>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="loading-indicator hidden">
+          <div class="spinner"></div>
+          <p>Bit Builder is thinking...</p>
+        </div>
+      </main>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <div class="input-controls">
+          <input
+            type="text"
+            id="message-input"
+            placeholder="Tell me a joke or ask me to help with comedy..."
+            autocomplete="off"
+          />
+          <button id="send-btn" class="btn-send">Send</button>
+          <button id="voice-btn" class="btn-voice" title="Record voice message">
+            🎤
+          </button>
+        </div>
+        <div id="voice-status" class="voice-status hidden"></div>
+      </div>
+    </div>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
@@ -57,5 +60,5 @@
     <!-- App Scripts -->
     <script type="module" src="app.js"></script>
     <script type="module" src="chat.js"></script>
-</body>
+  </body>
 </html>

@@ -10,6 +10,7 @@ import {
     onSnapshot,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-functions.js';
 
 // Firebase references (will be available from app.js)
@@ -21,6 +22,8 @@ let isListening = false;
 
 // Elements
 let messagesArea, messageInput, sendBtn, voiceBtn, loadingIndicator, voiceStatus, bitbinderBtn;
+let hasBoundUi = false;
+let hasAuthListener = false;
 
 // ===================================
 // Wait for Firebase to be ready
@@ -51,64 +54,91 @@ const initChatApp = () => {
     // Initialize
     // ===================================
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Load or create conversation
-        await initializeConversation();
+    if (!hasBoundUi) {
+        const bindUi = () => {
+            // Set up event listeners
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
 
-        // Set up event listeners
-        sendBtn.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+            voiceBtn.addEventListener('click', toggleVoiceRecording);
+            bitbinderBtn.addEventListener('click', () => {
+                window.location.href = 'binder.html';
+            });
+
+            // Initialize speech recognition if available
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                speechRecognition = new SpeechRecognition();
+                speechRecognition.continuous = false;
+                speechRecognition.interimResults = false;
+                speechRecognition.lang = 'en-US';
+
+                speechRecognition.onstart = () => {
+                    isListening = true;
+                    voiceBtn.classList.add('recording');
+                    voiceStatus.textContent = 'Listening...';
+                    voiceStatus.classList.remove('hidden');
+                };
+
+                speechRecognition.onend = () => {
+                    isListening = false;
+                    voiceBtn.classList.remove('recording');
+                    voiceStatus.classList.add('hidden');
+                };
+
+                speechRecognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    if (event.isFinal) {
+                        messageInput.value = transcript;
+                        sendMessage();
+                    }
+                };
+
+                speechRecognition.onerror = (event) => {
+                    console.error('Speech recognition error', event.error);
+                    voiceStatus.textContent = 'Error: ' + event.error;
+                };
+            } else {
+                voiceBtn.style.display = 'none';
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindUi, { once: true });
+        } else {
+            bindUi();
+        }
+
+        hasBoundUi = true;
+    }
+
+    if (!hasAuthListener) {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                initializeConversation();
+                return;
+            }
+
+            currentConversationId = null;
+            if (messagesUnsubscribe) {
+                messagesUnsubscribe();
+                messagesUnsubscribe = null;
+            }
+            if (messagesArea) {
+                messagesArea.innerHTML = '';
             }
         });
 
-        voiceBtn.addEventListener('click', toggleVoiceRecording);
-        bitbinderBtn.addEventListener('click', () => {
-            window.location.href = 'binder.html';
-        });
-
-        // Initialize speech recognition if available
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            speechRecognition = new SpeechRecognition();
-            speechRecognition.continuous = false;
-            speechRecognition.interimResults = false;
-            speechRecognition.lang = 'en-US';
-
-            speechRecognition.onstart = () => {
-                isListening = true;
-                voiceBtn.classList.add('recording');
-                voiceStatus.textContent = 'Listening...';
-                voiceStatus.classList.remove('hidden');
-            };
-
-            speechRecognition.onend = () => {
-                isListening = false;
-                voiceBtn.classList.remove('recording');
-                voiceStatus.classList.add('hidden');
-            };
-
-            speechRecognition.onresult = (event) => {
-                let transcript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
-                }
-                if (event.isFinal) {
-                    messageInput.value = transcript;
-                    sendMessage();
-                }
-            };
-
-            speechRecognition.onerror = (event) => {
-                console.error('Speech recognition error', event.error);
-                voiceStatus.textContent = 'Error: ' + event.error;
-            };
-        } else {
-            voiceBtn.style.display = 'none';
-        }
-    });
+        hasAuthListener = true;
+    }
 };
 
 // ===================================

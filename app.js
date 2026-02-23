@@ -80,7 +80,7 @@ function getAuthErrorMessage(code) {
         'auth/wrong-password': 'Incorrect password.',
         'auth/too-many-requests': 'Too many failed login attempts. Please try again later.',
     };
-    return messages[code] || error.message;
+    return messages[code] || 'Authentication failed. Please try again.';
 }
 
 // ===================================
