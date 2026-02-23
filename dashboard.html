@@ -39,10 +39,11 @@
           src="widget-frame.html"
           allow="microphone"
         ></iframe>
-        <div id="voice-status" class="voice-status-pill">
-          <span class="status-dot"></span>
-          <span class="status-label">Tap to call</span>
-        </div>
+      </div>
+      <!-- Hidden status element for JS bridge -->
+      <div id="voice-status" class="voice-status-pill hidden">
+        <span class="status-dot"></span>
+        <span class="status-label"></span>
       </div>
 
       <!-- Main content: transcript + notes -->
