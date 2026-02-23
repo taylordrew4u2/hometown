@@ -66,15 +66,14 @@ function init() {
     // Save modal wiring
     initSaveModal();
 
-    // Intercept WebSocket BEFORE widget boots
-    interceptWebSocket();
+    // Listen for postMessage from the widget iframe
+    setupIframeBridge();
 
     // Auth listener
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
         if (user) {
             console.log('[bridge] User:', user.uid);
-            wireVoiceWidget();
         }
     });
 
@@ -138,104 +137,51 @@ function initNotes() {
 }
 
 // ===================================
-// 1. VOICE WIDGET — tool registration + WebSocket transcript
+// 1. IFRAME BRIDGE — listen for postMessage from widget-frame.html
 // ===================================
 
-function wireVoiceWidget() {
-    const widget = document.querySelector('elevenlabs-convai');
-    if (!widget) {
-        setTimeout(wireVoiceWidget, 300);
-        return;
-    }
+function setupIframeBridge() {
+    window.addEventListener('message', (event) => {
+        const msg = event.data;
+        if (!msg || !msg.type) return;
 
-    // Try to register save_joke client tool on the widget
-    function tryRegister() {
-        if (typeof widget.registerClientTool === 'function') {
-            widget.registerClientTool('save_joke', async (params) => {
-                console.log('[bridge] Widget save_joke:', params);
-                const result = await saveJokeToFirestore(params);
-                if (result.success) {
-                    appendMessage('tool', '✅ Joke saved to Bitbinder!');
-                } else {
-                    appendMessage('tool', '❌ ' + (result.error || 'Save failed'));
-                }
-                return result;
-            });
-            console.log('[bridge] Registered save_joke on widget');
-            return true;
-        }
-        return false;
-    }
-
-    if (!tryRegister()) {
-        widget.addEventListener('elevenlabs-convai:ready', tryRegister);
-        let attempts = 0;
-        const poll = setInterval(() => {
-            if (tryRegister() || ++attempts > 50) clearInterval(poll);
-        }, 300);
-    }
-
-    // Catch-all tool call event
-    widget.addEventListener('elevenlabs-convai:call', async (e) => {
-        const { tool_name, parameters, callback } = e.detail || {};
-        if (tool_name === 'save_joke') {
-            const result = await saveJokeToFirestore(parameters);
-            if (result.success) appendMessage('tool', '✅ Joke saved to Bitbinder!');
-            if (typeof callback === 'function') callback(result);
-        }
-    });
-
-    console.log('[bridge] Voice widget wired');
-}
-
-// ===================================
-// Intercept WebSocket for voice transcripts
-// ===================================
-
-const OriginalWebSocket = window.WebSocket;
-
-function interceptWebSocket() {
-    if (window.__wsIntercepted) return;
-    window.__wsIntercepted = true;
-
-    window.WebSocket = function (url, protocols) {
-        const sock = protocols
-            ? new OriginalWebSocket(url, protocols)
-            : new OriginalWebSocket(url);
-
-        if (typeof url === 'string' && url.includes('elevenlabs.io')) {
-            console.log('[bridge] Intercepted ElevenLabs WS');
-
-            sock.addEventListener('message', (event) => {
-                try {
-                    handleVoiceMessage(JSON.parse(event.data));
-                } catch { /* binary audio */ }
-            });
-
-            sock.addEventListener('open', () => {
+        switch (msg.type) {
+            case 'ws-open':
                 voiceActive = true;
                 updateVoiceStatus('connected');
                 appendMessage('system', '🎤 Voice connected — start talking!');
-            });
+                break;
 
-            sock.addEventListener('close', () => {
+            case 'ws-close':
                 voiceActive = false;
                 updateVoiceStatus('idle');
                 appendMessage('system', '🔇 Voice ended');
                 currentAgentBubble = null;
                 currentAgentText = '';
                 currentUserBubble = null;
-            });
+                break;
+
+            case 'ws-message':
+                handleVoiceMessage(msg.data);
+                break;
+
+            case 'save-joke':
+                saveJokeToFirestore(msg.params).then(result => {
+                    if (result.success) appendMessage('tool', '✅ Joke saved to Bitbinder!');
+                    else appendMessage('tool', '❌ ' + (result.error || 'Save failed'));
+                    // Reply to iframe
+                    const iframe = document.getElementById('widget-frame');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage(
+                            { type: 'save-joke-result', reqId: msg.reqId, result },
+                            '*'
+                        );
+                    }
+                });
+                break;
         }
-
-        return sock;
-    };
-
-    window.WebSocket.prototype = OriginalWebSocket.prototype;
-    window.WebSocket.CONNECTING = OriginalWebSocket.CONNECTING;
-    window.WebSocket.OPEN = OriginalWebSocket.OPEN;
-    window.WebSocket.CLOSING = OriginalWebSocket.CLOSING;
-    window.WebSocket.CLOSED = OriginalWebSocket.CLOSED;
+    });
+    console.log('[bridge] Iframe bridge ready');
 }
 
 function updateVoiceStatus(state) {

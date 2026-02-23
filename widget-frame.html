@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Voice Widget</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: transparent;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <elevenlabs-convai
+      agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
+    ></elevenlabs-convai>
+
+    <!-- Intercept WebSocket BEFORE widget script loads -->
+    <script>
+      (function () {
+        const OrigWS = window.WebSocket;
+
+        window.WebSocket = function (url, protocols) {
+          const ws = protocols ? new OrigWS(url, protocols) : new OrigWS(url);
+
+          if (typeof url === "string" && url.includes("elevenlabs.io")) {
+            parent.postMessage({ type: "ws-open" }, "*");
+
+            ws.addEventListener("message", function (e) {
+              try {
+                parent.postMessage(
+                  { type: "ws-message", data: JSON.parse(e.data) },
+                  "*",
+                );
+              } catch (_) {
+                /* binary audio frame */
+              }
+            });
+
+            ws.addEventListener("close", function () {
+              parent.postMessage({ type: "ws-close" }, "*");
+            });
+
+            ws.addEventListener("error", function () {
+              parent.postMessage({ type: "ws-close" }, "*");
+            });
+          }
+
+          return ws;
+        };
+
+        window.WebSocket.prototype = OrigWS.prototype;
+        window.WebSocket.CONNECTING = OrigWS.CONNECTING;
+        window.WebSocket.OPEN = OrigWS.OPEN;
+        window.WebSocket.CLOSING = OrigWS.CLOSING;
+        window.WebSocket.CLOSED = OrigWS.CLOSED;
+
+        /* ---- Register save_joke client tool ---- */
+        function wireWidget() {
+          var el = document.querySelector("elevenlabs-convai");
+          if (!el) {
+            setTimeout(wireWidget, 200);
+            return;
+          }
+
+          function tryRegister() {
+            if (typeof el.registerClientTool !== "function") return false;
+            el.registerClientTool("save_joke", function (params) {
+              return new Promise(function (resolve) {
+                var reqId = String(Date.now());
+                parent.postMessage(
+                  { type: "save-joke", params: params, reqId: reqId },
+                  "*",
+                );
+
+                function onReply(evt) {
+                  if (
+                    evt.data &&
+                    evt.data.type === "save-joke-result" &&
+                    evt.data.reqId === reqId
+                  ) {
+                    window.removeEventListener("message", onReply);
+                    resolve(evt.data.result);
+                  }
+                }
+                window.addEventListener("message", onReply);
+                setTimeout(function () {
+                  window.removeEventListener("message", onReply);
+                  resolve("Timed out");
+                }, 10000);
+              });
+            });
+            return true;
+          }
+
+          if (!tryRegister()) {
+            el.addEventListener("elevenlabs-convai:ready", tryRegister);
+            var n = 0;
+            var poll = setInterval(function () {
+              if (tryRegister() || ++n > 50) clearInterval(poll);
+            }, 300);
+          }
+
+          /* catch-all tool call event */
+          el.addEventListener("elevenlabs-convai:call", function (e) {
+            var d = e.detail || {};
+            if (d.tool_name === "save_joke") {
+              var reqId = String(Date.now());
+              parent.postMessage(
+                { type: "save-joke", params: d.parameters, reqId: reqId },
+                "*",
+              );
+              window.addEventListener("message", function reply(evt) {
+                if (
+                  evt.data &&
+                  evt.data.type === "save-joke-result" &&
+                  evt.data.reqId === reqId
+                ) {
+                  window.removeEventListener("message", reply);
+                  if (typeof d.callback === "function")
+                    d.callback(evt.data.result);
+                }
+              });
+            }
+          });
+        }
+        wireWidget();
+      })();
+    </script>
+
+    <!-- Widget script loads AFTER our interception is in place -->
+    <script src="https://elevenlabs.io/convai-widget/index.js" async></script>
+  </body>
+</html>

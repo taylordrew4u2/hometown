@@ -32,15 +32,13 @@
         </div>
       </header>
 
-      <!--
-        Widget dock — transform creates a new containing block so the
-        widget’s position:fixed shadow-DOM children stay inside this
-        strip instead of escaping to the viewport.
-      -->
+      <!-- Widget dock — iframe sandboxes the ElevenLabs widget -->
       <div class="widget-dock">
-        <elevenlabs-convai
-          agent-id="agent_7401ka31ry6qftr9ab89em3339w9"
-        ></elevenlabs-convai>
+        <iframe
+          id="widget-frame"
+          src="widget-frame.html"
+          allow="microphone"
+        ></iframe>
         <div id="voice-status" class="voice-status-pill">
           <span class="status-dot"></span>
           <span class="status-label">Tap to call</span>
@@ -156,13 +154,6 @@
         </div>
       </div>
     </div>
-
-    <!-- ElevenLabs Conversational AI Widget -->
-    <script
-      src="https://elevenlabs.io/convai-widget/index.js"
-      async
-      type="text/javascript"
-    ></script>
 
     <!-- App Scripts -->
     <script type="module" src="app.js"></script>

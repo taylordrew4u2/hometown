@@ -1,8 +1,8 @@
 /* ===================================
    The BitBinder – iOS-Inspired Theme
    ===================================
-   Warm paper / notepad aesthetic with
-   orange-red & blue-purple accent gradients.
+   Cool paper aesthetic with
+   teal-cyan & violet-purple accent gradients.
    =================================== */
 
 /* ---------- Reset & Base ---------- */
@@ -17,21 +17,21 @@
 
 :root {
     /* Palette */
-    --paper: #f9f5e8;
-    --ruled: #e6e6eb;
-    --margin-red: #ff6a3d;
-    --accent-start: #ff9f4b;
-    --accent-end: #ff6a3d;
+    --paper: #f0f5f9;
+    --ruled: #dae1e8;
+    --margin-red: #06b6d4;
+    --accent-start: #22d3ee;
+    --accent-end: #0891b2;
     --accent-gradient: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-    --secondary-start: #007aff;
-    --secondary-end: #8e68ff;
+    --secondary-start: #a78bfa;
+    --secondary-end: #7c3aed;
     --secondary-gradient: linear-gradient(135deg, var(--secondary-start), var(--secondary-end));
     --text-primary: #1c1c1e;
     --text-secondary: #6c6c70;
     --text-tertiary: #aeaeb2;
-    --border: #e5e0d5;
+    --border: #cdd6de;
     --card-bg: #ffffff;
-    --surface: #f2ede3;
+    --surface: #e4ecf1;
     --danger: #ff3b30;
     --success: #34c759;
     --warning: #ff9500;
@@ -160,7 +160,7 @@ img {
 .auth-form input:focus {
     outline: none;
     border-color: var(--margin-red);
-    box-shadow: 0 0 0 3px rgba(255, 106, 61, 0.12);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
 }
 
 .error-message {
@@ -194,7 +194,7 @@ img {
 
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(255, 106, 61, 0.3);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3);
 }
 
 .btn-primary:active {
@@ -221,7 +221,7 @@ img {
 .btn-secondary:hover {
     border-color: var(--margin-red);
     color: var(--margin-red);
-    background: rgba(255, 106, 61, 0.04);
+    background: rgba(6, 182, 212, 0.04);
 }
 
 .btn-small {
@@ -240,7 +240,7 @@ img {
 }
 
 .btn-edit:hover {
-    box-shadow: 0 3px 10px rgba(255, 106, 61, 0.25);
+    box-shadow: 0 3px 10px rgba(6, 182, 212, 0.25);
 }
 
 .btn-delete {
@@ -322,7 +322,7 @@ img {
 
 .btn-send:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(255, 106, 61, 0.3);
+    box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
 }
 
 /* ---------- Header ---------- */
@@ -393,15 +393,12 @@ img {
 }
 
 /*
-   Widget dock — sits between header and main content.
-   transform: translateZ(0) creates a new containing block so the
-   widget’s position:fixed shadow-DOM children are relative to this
-   element instead of the viewport.  overflow:hidden clips them.
+   Widget dock — iframe sandbox for the ElevenLabs widget.
+   The iframe prevents position:fixed shadow-DOM children
+   from escaping to the viewport.
 */
 .widget-dock {
     position: relative;
-    transform: translateZ(0);
-    overflow: hidden;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -411,6 +408,15 @@ img {
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
     z-index: 10;
+}
+
+.widget-dock #widget-frame {
+    width: 80px;
+    height: 56px;
+    border: 0;
+    background: transparent;
+    flex-shrink: 0;
+    display: block;
 }
 
 .chat-main {
@@ -848,7 +854,7 @@ img {
     background: var(--accent-gradient);
     color: #fff;
     border-color: transparent;
-    box-shadow: 0 2px 8px rgba(255, 106, 61, 0.25);
+    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);
 }
 
 .chip i {
@@ -883,7 +889,7 @@ img {
 .search-box input:focus {
     outline: none;
     border-color: var(--margin-red);
-    box-shadow: 0 0 0 3px rgba(255, 106, 61, 0.1);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
 }
 
 .search-box::before {
@@ -1019,7 +1025,7 @@ img {
     display: inline-block;
     padding: 3px 10px;
     border-radius: var(--radius-pill);
-    background: rgba(255, 159, 75, 0.15);
+    background: rgba(34, 211, 238, 0.15);
     color: var(--margin-red);
     font-size: 0.78em;
     font-weight: 700;
@@ -1072,7 +1078,7 @@ img {
 .tag-chip {
     display: inline-block;
     padding: 4px 12px;
-    background: rgba(255, 159, 75, 0.12);
+    background: rgba(34, 211, 238, 0.12);
     color: var(--margin-red);
     border-radius: var(--radius-pill);
     font-size: 0.78em;
@@ -1128,14 +1134,14 @@ img {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.35);
+    box-shadow: 0 4px 16px rgba(139, 92, 250, 0.35);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     z-index: 90;
 }
 
 .fab:hover {
     transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 6px 24px rgba(0, 122, 255, 0.4);
+    box-shadow: 0 6px 24px rgba(139, 92, 250, 0.4);
 }
 
 .fab:active {
@@ -1205,8 +1211,8 @@ img {
             var(--ruled) 32px),
         linear-gradient(to right,
             transparent 39px,
-            rgba(255, 106, 61, 0.25) 39px,
-            rgba(255, 106, 61, 0.25) 41px,
+            rgba(6, 182, 212, 0.25) 39px,
+            rgba(6, 182, 212, 0.25) 41px,
             transparent 41px),
         var(--paper);
     padding: 20px 20px 20px 52px;
@@ -1392,7 +1398,7 @@ img {
 #save-joke-form textarea:focus {
     outline: none;
     border-color: var(--margin-red);
-    box-shadow: 0 0 0 3px rgba(255, 106, 61, 0.1);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
 }
 
 #edit-form input[type="text"],
@@ -1505,7 +1511,7 @@ img {
 }
 
 .placeholder-item .item-icon.purple {
-    background: linear-gradient(135deg, #8e68ff, #af52de);
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
 
 .placeholder-item .item-body {
@@ -1584,9 +1590,9 @@ img {
         gap: 10px;
     }
 
-    .widget-dock elevenlabs-convai {
-        max-width: 50px;
-        max-height: 50px;
+    .widget-dock #widget-frame {
+        width: 70px;
+        height: 50px;
     }
 
     .voice-status-pill {
@@ -1767,9 +1773,9 @@ img {
         gap: 8px;
     }
 
-    .widget-dock elevenlabs-convai {
-        max-width: 46px;
-        max-height: 46px;
+    .widget-dock #widget-frame {
+        width: 60px;
+        height: 46px;
     }
 
     .voice-status-pill {
