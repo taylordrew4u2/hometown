@@ -26,9 +26,11 @@ let currentAgentBubble = null;
 let currentAgentText = '';
 let currentUserBubble = null;
 let voiceActive = false;
+let signedUrlRefreshTimer = null;
 
 const AGENT_ID = 'agent_7401ka31ry6qftr9ab89em3339w9';
 const NOTES_STORAGE_KEY = 'bitbuilder_notes';
+const SIGNED_URL_REFRESH_MS = 8 * 60 * 1000;   // refresh every 8 min (URLs typically last 10 min)
 
 // ===================================
 // Init — wait for Firebase
@@ -77,10 +79,44 @@ function init() {
         currentUser = user;
         if (user) {
             console.log('[bridge] User:', user.uid);
+            // Fetch signed URL once authenticated and push it to the widget
+            fetchAndApplySignedUrl();
+        } else {
+            clearInterval(signedUrlRefreshTimer);
         }
     });
 
     console.log('[bridge] Initialized');
+}
+
+// ===================================
+// Signed URL — authenticate the ElevenLabs widget via Cloud Function
+// ===================================
+
+async function fetchAndApplySignedUrl() {
+    try {
+        const getSignedUrl = httpsCallable(functions, 'getSignedUrl');
+        const result = await getSignedUrl();
+        const url = result?.data?.signedUrl;
+        if (!url) {
+            console.warn('[bridge] No signed URL returned — widget will use agent-id only');
+            return;
+        }
+        console.log('[bridge] Got signed URL, pushing to widget iframe');
+
+        // Tell the widget-frame to apply the signed URL
+        const iframe = document.getElementById('widget-frame');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'set-signed-url', signedUrl: url }, '*');
+        }
+
+        // Schedule refresh before expiry
+        clearInterval(signedUrlRefreshTimer);
+        signedUrlRefreshTimer = setInterval(fetchAndApplySignedUrl, SIGNED_URL_REFRESH_MS);
+    } catch (err) {
+        console.error('[bridge] Failed to fetch signed URL:', err);
+        appendMessage('system', '<i class="fas fa-triangle-exclamation"></i> Could not authenticate voice agent — check your connection and reload.');
+    }
 }
 
 // ===================================
@@ -312,12 +348,39 @@ function handleVoiceMessage(data) {
             break;
         }
 
+        case 'internal_tentative_agent_response': {
+            // Live partial response — update the current agent bubble in real time
+            const evt = data.tentative_agent_response_internal_event || data;
+            const text = evt.tentative_agent_response || '';
+            if (!text) break;
+            if (!currentAgentBubble) {
+                currentAgentBubble = appendMessage('assistant', text, true);
+                currentAgentText = text;
+            } else {
+                currentAgentText = text;
+                setBubbleHTML(currentAgentBubble.querySelector('.message-body') || currentAgentBubble, text);
+            }
+            break;
+        }
+
+        case 'conversation_initiation_metadata':
+            // Connection established — the widget successfully authenticated
+            console.log('[bridge] Conversation initiated:', data);
+            break;
+
         case 'interruption':
         case 'turn_end':
         case 'end_of_turn':
             currentAgentBubble = null;
             currentAgentText = '';
             currentUserBubble = null;
+            break;
+
+        default:
+            // Log unhandled event types for debugging
+            if (data.type) {
+                console.log('[bridge] Unhandled WS event:', data.type, data);
+            }
             break;
     }
 }

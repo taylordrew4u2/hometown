@@ -36,29 +36,81 @@
       (function () {
         const OrigWS = window.WebSocket;
 
+        /*
+          The ElevenLabs widget opens multiple WebSocket connections:
+            - wss://api.elevenlabs.io (or api.us.elevenlabs.io) — conversational API (JSON transcript + tool calls)
+            - wss://livekit.rtc.elevenlabs.io — LiveKit real-time audio signaling (mostly binary)
+          We only track the API connection for transcript events and lifecycle.
+        */
+        var apiSocket = null; // reference to the conversational-API socket
+        var openCount = 0; // how many ElevenLabs sockets are open
+
+        function isApiSocket(url) {
+          return (
+            typeof url === "string" &&
+            url.includes("elevenlabs.io") &&
+            !url.includes("livekit")
+          );
+        }
+
+        function isElevenLabsSocket(url) {
+          return typeof url === "string" && url.includes("elevenlabs.io");
+        }
+
         window.WebSocket = function (url, protocols) {
-          const ws = protocols ? new OrigWS(url, protocols) : new OrigWS(url);
+          var ws = protocols ? new OrigWS(url, protocols) : new OrigWS(url);
 
-          if (typeof url === "string" && url.includes("elevenlabs.io")) {
-            parent.postMessage({ type: "ws-open" }, "*");
+          if (isElevenLabsSocket(url)) {
+            openCount++;
+            console.log(
+              "[widget-frame] WS open →",
+              url,
+              "  openCount:",
+              openCount,
+            );
 
-            ws.addEventListener("message", function (e) {
-              try {
-                parent.postMessage(
-                  { type: "ws-message", data: JSON.parse(e.data) },
-                  "*",
-                );
-              } catch (_) {
-                /* binary audio frame */
+            // Notify parent on FIRST ElevenLabs socket
+            if (openCount === 1) {
+              parent.postMessage({ type: "ws-open" }, "*");
+            }
+
+            // Only forward JSON messages from the conversational-API socket
+            if (isApiSocket(url)) {
+              apiSocket = ws;
+              ws.addEventListener("message", function (e) {
+                try {
+                  parent.postMessage(
+                    { type: "ws-message", data: JSON.parse(e.data) },
+                    "*",
+                  );
+                } catch (_) {
+                  /* binary audio frame — ignore */
+                }
+              });
+            }
+
+            ws.addEventListener("close", function () {
+              openCount = Math.max(0, openCount - 1);
+              console.log(
+                "[widget-frame] WS close →",
+                url,
+                "  openCount:",
+                openCount,
+              );
+              if (ws === apiSocket) apiSocket = null;
+              // Only report close when ALL ElevenLabs sockets are gone
+              if (openCount === 0) {
+                parent.postMessage({ type: "ws-close" }, "*");
               }
             });
 
-            ws.addEventListener("close", function () {
-              parent.postMessage({ type: "ws-close" }, "*");
-            });
-
-            ws.addEventListener("error", function () {
-              parent.postMessage({ type: "ws-close" }, "*");
+            ws.addEventListener("error", function (err) {
+              console.error("[widget-frame] WS error →", url, err);
+              openCount = Math.max(0, openCount - 1);
+              if (ws === apiSocket) apiSocket = null;
+              if (openCount === 0) {
+                parent.postMessage({ type: "ws-close" }, "*");
+              }
             });
           }
 
@@ -71,7 +123,7 @@
         window.WebSocket.CLOSING = OrigWS.CLOSING;
         window.WebSocket.CLOSED = OrigWS.CLOSED;
 
-        /* ---- Register save_joke client tool ---- */
+        /* ---- Wire save_joke client tool ---- */
         function wireWidget() {
           var el = document.querySelector("elevenlabs-convai");
           if (!el) {
@@ -79,68 +131,92 @@
             return;
           }
 
-          function tryRegister() {
-            if (typeof el.registerClientTool !== "function") return false;
-            el.registerClientTool("save_joke", function (params) {
-              return new Promise(function (resolve) {
-                var reqId = String(Date.now());
-                parent.postMessage(
-                  { type: "save-joke", params: params, reqId: reqId },
-                  "*",
-                );
-
-                function onReply(evt) {
-                  if (
-                    evt.data &&
-                    evt.data.type === "save-joke-result" &&
-                    evt.data.reqId === reqId
-                  ) {
-                    window.removeEventListener("message", onReply);
-                    resolve(evt.data.result);
-                  }
-                }
-                window.addEventListener("message", onReply);
-                setTimeout(function () {
-                  window.removeEventListener("message", onReply);
-                  resolve("Timed out");
-                }, 10000);
-              });
-            });
-            return true;
-          }
-
-          if (!tryRegister()) {
-            el.addEventListener("elevenlabs-convai:ready", tryRegister);
-            var n = 0;
-            var poll = setInterval(function () {
-              if (tryRegister() || ++n > 50) clearInterval(poll);
-            }, 300);
-          }
-
-          /* catch-all tool call event */
-          el.addEventListener("elevenlabs-convai:call", function (e) {
-            var d = e.detail || {};
-            if (d.tool_name === "save_joke") {
+          /* Helper: handle a save_joke call and return a Promise for the result */
+          function handleSaveJoke(params) {
+            return new Promise(function (resolve) {
               var reqId = String(Date.now());
               parent.postMessage(
-                { type: "save-joke", params: d.parameters, reqId: reqId },
+                { type: "save-joke", params: params, reqId: reqId },
                 "*",
               );
-              window.addEventListener("message", function reply(evt) {
+              function onReply(evt) {
                 if (
                   evt.data &&
                   evt.data.type === "save-joke-result" &&
                   evt.data.reqId === reqId
                 ) {
-                  window.removeEventListener("message", reply);
-                  if (typeof d.callback === "function")
-                    d.callback(evt.data.result);
+                  window.removeEventListener("message", onReply);
+                  resolve(evt.data.result);
                 }
+              }
+              window.addEventListener("message", onReply);
+              setTimeout(function () {
+                window.removeEventListener("message", onReply);
+                resolve("Timed out");
+              }, 10000);
+            });
+          }
+
+          /* Modern API: set clientTools property (object of name → handler) */
+          function trySetClientTools() {
+            try {
+              el.clientTools = { save_joke: handleSaveJoke };
+              console.log("[widget-frame] clientTools set via property");
+              return true;
+            } catch (_) {
+              return false;
+            }
+          }
+
+          /* Legacy API: registerClientTool (older widget versions) */
+          function tryRegister() {
+            if (typeof el.registerClientTool !== "function") return false;
+            el.registerClientTool("save_joke", handleSaveJoke);
+            console.log("[widget-frame] Registered via registerClientTool");
+            return true;
+          }
+
+          /* Try both approaches */
+          if (!trySetClientTools() && !tryRegister()) {
+            el.addEventListener("elevenlabs-convai:ready", function () {
+              trySetClientTools() || tryRegister();
+            });
+            var n = 0;
+            var poll = setInterval(function () {
+              if (trySetClientTools() || tryRegister() || ++n > 50)
+                clearInterval(poll);
+            }, 300);
+          }
+
+          /* catch-all tool call event (fallback) */
+          el.addEventListener("elevenlabs-convai:call", function (e) {
+            var d = e.detail || {};
+            if (d.tool_name === "save_joke") {
+              handleSaveJoke(d.parameters).then(function (result) {
+                if (typeof d.callback === "function") d.callback(result);
               });
             }
           });
         }
         wireWidget();
+
+        /* ---- Listen for signed URL from parent (agent-bridge.js) ---- */
+        window.addEventListener("message", function (evt) {
+          if (
+            evt.data &&
+            evt.data.type === "set-signed-url" &&
+            evt.data.signedUrl
+          ) {
+            var el = document.querySelector("elevenlabs-convai");
+            if (el) {
+              // Apply the signed URL — the widget will use it instead of the plain agent-id
+              el.setAttribute("signed-url", evt.data.signedUrl);
+              console.log(
+                "[widget-frame] signed-url applied to widget element",
+              );
+            }
+          }
+        });
 
         /* ---- Force the widget into a compact circle ---- */
         function styleWidgetButton() {
